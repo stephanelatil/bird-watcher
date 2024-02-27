@@ -1,0 +1,10 @@
+#lask backend
+flask
+flask-sqlalchemy
+
+#config
+python-decouple
+
+#video management
+opencv-contrib-python #-headless 
+numpy
