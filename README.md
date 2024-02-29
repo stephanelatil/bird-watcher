@@ -6,12 +6,12 @@ A self-hosted web app to be placed on a micro computer (96boards or raspberry-pi
 
 ### Installing Requirements
 
-On your device make sure to install `ffmpeg` and `libx264` that should be on the PATH.
+On your device make sure to install `ffmpeg` that should be on the PATH and some libraries: `libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev`
 
 #### For Debiam/Ubuntu
 
-simply run `sudo apt-get install libx264 ffmpeg`
+simply run `sudo apt-get install ffmpeg libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev`
 
 #### For Alpine Linux
 
-Run `sudo apk install x264-libs ffmpeg`
+Run `sudo apk install ffmpeg ffmpeg-libavformat ffmpeg-libavcodec ffmpeg-libavdevice ffmpeg-libavutil ffmpeg-libswscale ffmpeg-libswresample ffmpeg-libavfilter`
