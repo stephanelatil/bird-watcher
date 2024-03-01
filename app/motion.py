@@ -169,7 +169,7 @@ class CamInterface:
         self._camera.close()
         
 class CapAndRecord(Interruptable):
-    def __init__(self, movement_check=0.5, after_movement=3, before_movement=3, cam_options=None) -> None:
+    def __init__(self, movement_check=0.5, after_movement=3, before_movement=3, motion_threshold=0.07, cam_options=None) -> None:
         if cam_options is None:
             cam_options = {}
         self._cam = CamInterface(options=cam_options)
@@ -178,9 +178,10 @@ class CapAndRecord(Interruptable):
         self._frame_movement_check = self._cam.frame_rate*movement_check
         self._record_n_frames_without_movement = self._cam.frame_rate*after_movement
         self._frame_ring_buffer = deque(maxlen=int(self._cam.frame_rate*before_movement))
+        self._motion_threshold = motion_threshold
     
     def _run(self):
-        motion = MotionDetector(shrink_ratio=1/20, mov_on_frame_amount=0.08,
+        motion = MotionDetector(shrink_ratio=1/20, mov_on_frame_amount=self._motion_threshold,
                                 #mov check twice a sec
                                 mov_check_every=self._frame_movement_check)
         writer = None
@@ -225,8 +226,12 @@ class CapAndRecord(Interruptable):
         
 
 
-c = CapAndRecord(cam_options={"input_format":env("VID_INPUT_FORMAT", default="mjpeg", cast=str),
-                              "videosize":env("VID_RESOLUTION",default="640x400",cast=str)})
-c.start()
-input()
-c.stop()
+# c = CapAndRecord(cam_options={"input_format":env("VID_INPUT_FORMAT", default="mjpeg", cast=str),
+#                               "videosize":env("VID_RESOLUTION",default="640x400",cast=str)},
+#                  movement_check=env("MOTION_CHECKS_PER_SECOND", default=2, cast=float),
+#                  before_movement=env("RECORD_SECONDS_BEFORE_MOVEMENT", default=2, cast=float),
+#                  after_movement=env("RECORD_SECONDS_AFTER_MOVEMENT", default=2, cast=float),
+#                  motion_threshold=env("MOTION_DETECTION_THRESHOLD", default=2, cast=float))
+# c.start()
+# input()
+# c.stop()
