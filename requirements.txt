@@ -1,11 +1,15 @@
-#lask backend
-flask
-flask-sqlalchemy
+#django backend & frontend
+django
+django-filter
+django-bootstrap5
 
 #config
 python-decouple
 
+#utils
+unidecode
+
 #video management
 opencv-python
 numpy
-av --no-binary=av
+av #--no-binary=av
