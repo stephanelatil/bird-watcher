@@ -11,16 +11,31 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from decouple import Csv, Config, RepositoryEnv
+
+__all__ = ['env']
+
+env_path_dir = Path.cwd()
+#not top directory and env does not exist
+while env_path_dir != env_path_dir.parent and not env_path_dir.joinpath('.env').exists():
+    env_path_dir = env_path_dir.parent #look up one dir
+if env_path_dir == env_path_dir.parent:
+    print("Unable to find .env file!")
+    exit(1)
+
+env = Config(RepositoryEnv(str(env_path_dir.joinpath('.env').absolute())))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+VIDEOS_DIRECTORY=Path.joinpath(BASE_DIR, "assets","videos")
+THUMBNAIL_DIRECTORY=Path.joinpath(BASE_DIR, "assets","thumbnails")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-om3&e3h1mya0b1(yj5c^!76i82y54z=c_x6ig4^onuq9xc)q*0'
+SECRET_KEY = env('DJANGO_SECRET_KEY', cast=str)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -121,3 +136,15 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+VID_OUTPUT_PXL_FORMAT = env("VID_OUTPUT_PXL_FORMAT", default="yuvj444p", cast=str)
+VID_CAMERA_DEVICE = env("VID_CAMERA_DEVICE", cast=str)
+VID_CAMERA_FORMAT = env("VID_CAMERA_FORMAT", cast=str)
+VID_RESOLUTION = env("VID_RESOLUTION",default="640x400",cast=str)
+VID_INPUT_FORMAT = env("VID_INPUT_FORMAT", default="mjpeg", cast=str)
+
+MOTION_CHECKS_PER_SECOND = env("MOTION_CHECKS_PER_SECOND", default=2, cast=float)
+MOTION_DETECTION_THRESHOLD = env("MOTION_DETECTION_THRESHOLD", default=2, cast=float)
+RECORD_SECONDS_BEFORE_MOVEMENT = env("RECORD_SECONDS_BEFORE_MOVEMENT", default=2, cast=float)
+RECORD_SECONDS_AFTER_MOVEMENT = env("RECORD_SECONDS_AFTER_MOVEMENT", default=2, cast=float)
