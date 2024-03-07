@@ -5,7 +5,8 @@ from multiprocessing import Queue
 import av
 from datetime import datetime
 from collections import deque
-from settings import env
+from django.conf import settings
+from django.core.management import BaseCommand
 
 class StaticThreadInterrupt:
     _INTERRUPT = False
@@ -62,10 +63,10 @@ class VideoWriter(Interruptable):
         self._write_thread.start()
         
     def _start_write(self, filename):
-        container = av.open(filename, mode="w", options=self._write_options)
+        container = av.open(filename, mode="w")
         stream = container.add_stream(self._codec, rate=self._fps)
         stream.height,stream.width = self._resolution
-        stream.pix_fmt = env("VID_OUTPUT_PXL_FORMAT", default="yuvj444p", cast=str)
+        stream.pix_fmt = settings.VID_OUTPUT_PXL_FORMAT
         
         #write initial buffer
         for frame in self._initial:
@@ -141,8 +142,8 @@ class CamInterface:
     def __init__(self, options=None):
         if options is None:
             options = {}
-        self._camera = av.open(file=env("VID_CAMERA_DEVICE", cast=str),
-                            format=env("VID_CAMERA_FORMAT", cast=str),
+        self._camera = av.open(file=settings.VID_CAMERA_DEVICE,
+                            format=settings.VID_CAMERA_FORMAT,
                             options=options)
         self._frame_generator = self._camera.decode(video=0)
         for i in range(10):
@@ -226,12 +227,17 @@ class CapAndRecord(Interruptable):
         
 
 
-# c = CapAndRecord(cam_options={"input_format":env("VID_INPUT_FORMAT", default="mjpeg", cast=str),
-#                               "videosize":env("VID_RESOLUTION",default="640x400",cast=str)},
-#                  movement_check=env("MOTION_CHECKS_PER_SECOND", default=2, cast=float),
-#                  before_movement=env("RECORD_SECONDS_BEFORE_MOVEMENT", default=2, cast=float),
-#                  after_movement=env("RECORD_SECONDS_AFTER_MOVEMENT", default=2, cast=float),
-#                  motion_threshold=env("MOTION_DETECTION_THRESHOLD", default=2, cast=float))
-# c.start()
-# input()
-# c.stop()
+class Command(BaseCommand):
+    def add_arguments(self, parser):
+        return
+    
+    def handle(self, *args, **options):
+        c = CapAndRecord(cam_options={"input_format":settings.VID_INPUT_FORMAT,
+                                    "videosize":settings.VID_RESOLUTION},
+                        movement_check=settings.MOTION_CHECKS_PER_SECOND,
+                        before_movement=settings.RECORD_SECONDS_BEFORE_MOVEMENT,
+                        after_movement=settings.RECORD_SECONDS_AFTER_MOVEMENT,
+                        motion_threshold=settings.MOTION_DETECTION_THRESHOLD)
+        c.start()
+        input("Press enter to stop detecting motion.")
+        c.stop()
