@@ -35,3 +35,4 @@ The settings for the video encoding, and sensitivity of the movement detection c
 |Key|Description|Default value|
 | --- | --- | --- |
 |VID_OUTPUT_PXL_FORMAT|The pixel format for the video output|yuvj444p|
+| | | |
