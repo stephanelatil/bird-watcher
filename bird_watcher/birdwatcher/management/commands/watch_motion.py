@@ -2,11 +2,14 @@ import cv2
 import numpy as np
 from threading import Thread
 from multiprocessing import Queue
+from pathlib import Path
 import av
 from datetime import datetime
 from collections import deque
 from django.conf import settings
 from django.core.management import BaseCommand
+from django.core.files.images import ImageFile
+from birdwatcher.models import Video
 
 class StaticThreadInterrupt:
     _INTERRUPT = False
@@ -63,10 +66,28 @@ class VideoWriter(Interruptable):
         self._write_thread.start()
         
     def _start_write(self, filename):
-        container = av.open(filename, mode="w")
+        #Create thumbnail
+        if len(self._initial) > 0:
+            #if there are images in the ring buffer use the most recent as thumbnail
+            thumbnail_frame = self._initial[-1]
+        else:
+            #Otherwise take the first next frame
+            # TODO can stay stuck here if interrupted
+            thumbnail_frame = self._frame_queue.get(True)
+            self._frame_queue.put_nowait(thumbnail_frame)
+        thumbnail = cv2.imencode(".webp", thumbnail_frame,
+                        [cv2.IMWRITE_WEBP_QUALITY, 95])
+
+        file_path = Path.joinpath(settings.VIDEOS_DIRECTORY, filename)
+        container = av.open(file_path, mode="w")
         stream = container.add_stream(self._codec, rate=self._fps)
         stream.height,stream.width = self._resolution
         stream.pix_fmt = settings.VID_OUTPUT_PXL_FORMAT
+        
+        vid = Video.objects.create(video_file=file_path,
+                             thumbnail_file=ImageFile(thumbnail,filename[:-3]+'webp'),
+                             num_frames=len(self._initial),
+                             framerate=self._fps)
         
         #write initial buffer
         for frame in self._initial:
@@ -85,7 +106,10 @@ class VideoWriter(Interruptable):
             frame = av.VideoFrame.from_ndarray(f, format="rgb24")            
             for packet in stream.encode(frame):
                 container.mux(packet)
+            vid.num_frames += 1
 
+
+        vid.save()
         #flush steam
         for packet in stream.encode():
             container.mux(packet)
