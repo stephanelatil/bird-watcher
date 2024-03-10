@@ -10,6 +10,7 @@ python-decouple
 unidecode
 
 #video management
+Pillow
 opencv-python
 numpy
-av #--no-binary=av
+av --no-binary=av
