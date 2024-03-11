@@ -1,9 +1,11 @@
 # video files
 *.mp4
 
-#database files
+#database files and non-static assets
 *.sqlite
 *.sqlite3
+**/assets/thumbnails
+**/assets/videos
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -19,3 +21,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+
+# vscode files
+.vscode
