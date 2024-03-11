@@ -156,7 +156,7 @@ class MotionDetector:
         
         diff = cv2.absdiff(self._background, frame)
         self.update_backgroud(frame)
-        _,diff = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)
+        _,diff = cv2.threshold(diff, 45, 255, cv2.THRESH_BINARY)
         num_pixels_theshold = self._mov_on_frame_amount*diff.shape[0]*diff.shape[1]
         if cv2.countNonZero(diff) > num_pixels_theshold:
             return True
