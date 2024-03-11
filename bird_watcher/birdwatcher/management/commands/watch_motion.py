@@ -1,4 +1,4 @@
-import cv2
+import cv2, io
 import numpy as np
 from threading import Thread
 from multiprocessing import Queue
@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.management import BaseCommand
 from django.core.files.images import ImageFile
 from birdwatcher.models import Video
+from os import path
 
 class StaticThreadInterrupt:
     _INTERRUPT = False
@@ -56,6 +57,10 @@ class Interruptable:
 
 class VideoWriter(Interruptable):
     def __init__(self, filename, initial=None, codec="libx264", fps=30, height=1080, width=1920) -> None:
+        #ensure assets dir exists
+        Path(settings.MEDIA_ROOT).joinpath(settings.VIDEOS_DIRECTORY).mkdir(0o755, True, True)
+        Path(settings.MEDIA_ROOT).joinpath(settings.THUMBNAIL_DIRECTORY).mkdir(0o755, True, True)
+        
         self._frame_queue = Queue()
         self._initial = initial if isinstance(initial, (tuple, list)) else []
         self._codec = codec
@@ -75,10 +80,12 @@ class VideoWriter(Interruptable):
             # TODO can stay stuck here if interrupted
             thumbnail_frame = self._frame_queue.get(True)
             self._frame_queue.put_nowait(thumbnail_frame)
-        thumbnail = cv2.imencode(".webp", thumbnail_frame,
-                        [cv2.IMWRITE_WEBP_QUALITY, 95])
+        _, thumbnail = cv2.imencode(".webp", cv2.cvtColor(thumbnail_frame, cv2.COLOR_BGR2RGB),
+                    [cv2.IMWRITE_WEBP_QUALITY, 95])
+        thumbnail = np.array(thumbnail).tobytes()
+        thumbnail = io.BytesIO(thumbnail)
 
-        file_path = Path.joinpath(settings.VIDEOS_DIRECTORY, filename)
+        file_path = str(path.join(settings.MEDIA_ROOT, settings.VIDEOS_DIRECTORY, filename))
         container = av.open(file_path, mode="w")
         stream = container.add_stream(self._codec, rate=self._fps)
         stream.height,stream.width = self._resolution
