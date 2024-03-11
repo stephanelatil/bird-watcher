@@ -15,8 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
+from birdwatcher.views import ThumbnailView, VideoListView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('thumbnail/<int:pk>.webp', ThumbnailView.as_view(), name='get-thumbnail'),
+    re_path('videos/?', VideoListView.as_view(), name='video-list'),
 ]

@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
 
 class Tag(models.Model):
     name = models.CharField(max_length=32)
@@ -12,3 +13,7 @@ class Video(models.Model):
     framerate = models.FloatField()
     date_created = models.DateTimeField(auto_created=True, auto_now=True, editable=False)
     tags = models.ManyToManyField(Tag, related_name='videos', default=[])
+    
+    @property
+    def thumbnail_url(self):
+        return reverse('get-thumbnail', kwargs={'pk':self.pk})
