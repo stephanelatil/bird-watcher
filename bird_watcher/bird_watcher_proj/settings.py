@@ -146,6 +146,7 @@ VID_CAMERA_DEVICE = env("VID_CAMERA_DEVICE", cast=str)
 VID_CAMERA_FORMAT = env("VID_CAMERA_FORMAT", cast=str)
 VID_RESOLUTION = env("VID_RESOLUTION",default="640x400",cast=str)
 VID_INPUT_FORMAT = env("VID_INPUT_FORMAT", default="mjpeg", cast=str)
+VID_FORCED_FRAMRATE = env("VID_FORCED_FRAMRATE", default=-1, cast=float)
 
 MOTION_CHECKS_PER_SECOND = env("MOTION_CHECKS_PER_SECOND", default=2, cast=float)
 MOTION_DETECTION_THRESHOLD = env("MOTION_DETECTION_THRESHOLD", default=2, cast=float)

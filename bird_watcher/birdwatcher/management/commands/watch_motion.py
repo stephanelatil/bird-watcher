@@ -263,6 +263,11 @@ class Command(BaseCommand):
         return
     
     def handle(self, *args, **options):
+        options = {}
+        if settings.VID_FORCED_FRAMRATE > 0:
+            options['r'] = settings.VID_FORCED_FRAMRATE
+        
+        
         c = CapAndRecord(cam_options={"input_format":settings.VID_INPUT_FORMAT,
                                     "videosize":settings.VID_RESOLUTION},
                         movement_check=settings.MOTION_CHECKS_PER_SECOND,
