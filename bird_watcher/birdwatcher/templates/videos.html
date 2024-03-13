@@ -30,12 +30,12 @@
             <!-- Video Cards -->
             {% for video in videos %}
             <div class="col">
-                <div class="card video-card">
+                <a class="card video-card" href="/video/{{ video.pk }}">
                     <img src="{{ video.thumbnail_url }}" class="card-img-top" alt="Broken thumbnail">
                     <div class="card-body">
                         <h5 class="card-title">{{ video.date_created }}</h5>
                     </div>
-                </div>
+                </a>
             </div>
             {% endfor %}
         </div>
