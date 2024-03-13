@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from os.path import sep
-from decouple import Csv, Config, RepositoryEnv
+from decouple import Config, RepositoryEnv
 
 __all__ = ['env']
 

@@ -16,10 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path
-from birdwatcher.views import ThumbnailView, VideoListView
+from django.views.generic.base import RedirectView
+from birdwatcher.views import ThumbnailView, VideoListView, StreamVideoView, SingleVideoView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('thumbnail/<int:pk>.webp', ThumbnailView.as_view(), name='get-thumbnail'),
     re_path('videos/?', VideoListView.as_view(), name='video-list'),
+    path('video/<int:pk>', SingleVideoView.as_view(), name='video-get'),
+    re_path('video/(?P<pk>[1-9][0-9]*)/stream', StreamVideoView.as_view(), name='video-stream'),
+    re_path('video/0/stream', StreamVideoView.as_view(), name='video-stream'),
+    path(r'', RedirectView.as_view(url='videos', permanent=True), name='index')
 ]
