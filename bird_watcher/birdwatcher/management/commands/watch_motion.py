@@ -56,7 +56,7 @@ class Interruptable:
             StaticThreadInterrupt.interrupt_all()
 
 class VideoWriter(Interruptable):
-    def __init__(self, filename, initial=None, codec="libx264", fps=30, height=1080, width=1920, output_options=None) -> None:
+    def __init__(self, filename, initial=None, codec="libx264", fps=30, height=1080, width=1920) -> None:
         #ensure assets dir exists
         Path(settings.MEDIA_ROOT).joinpath(settings.VIDEOS_DIRECTORY).mkdir(0o755, True, True)
         Path(settings.MEDIA_ROOT).joinpath(settings.THUMBNAIL_DIRECTORY).mkdir(0o755, True, True)
@@ -90,10 +90,11 @@ class VideoWriter(Interruptable):
         thumbnail = io.BytesIO(thumbnail)
 
         file_path = str(path.join(settings.MEDIA_ROOT, settings.VIDEOS_DIRECTORY, filename))
-        container = av.open(file_path, mode="w", options=self._output_options)
+        container = av.open(file_path, mode="w")
         stream = container.add_stream(self._codec, rate=self._fps)
         stream.height,stream.width = self._resolution
         stream.pix_fmt = settings.VID_OUTPUT_PXL_FORMAT
+        stream.options = {'movflags':'+faststart', "crf":"18"}
         
         vid = Video.objects.create(video_file=file_path,
                              thumbnail_file=ImageFile(thumbnail,filename[:-3]+'webp'),
@@ -103,8 +104,9 @@ class VideoWriter(Interruptable):
         #write initial buffer
         for frame in self._initial:
             frame = av.VideoFrame.from_ndarray(frame, format="rgb24")            
-            for packet in stream.encode(frame):
-                container.mux(packet)
+            # for packet in stream.encode(frame):
+            #     container.mux(packet)
+            container.mux(stream.encode(frame))
         del self._initial #clear mem
                 
         #write other frames
@@ -206,12 +208,9 @@ class CamInterface:
         
 class CapAndRecord(Interruptable):
     def __init__(self, movement_check=0.5, after_movement=3, before_movement=3, motion_threshold=0.07,
-                 cam_options=None, output_options=None) -> None:
+                 cam_options=None) -> None:
         if cam_options is None:
             cam_options = {}
-        if output_options is None:
-            output_options = {}
-        self._output_options = output_options
         self._cam = CamInterface(options=cam_options)
         self._capThread = Thread(target=self._run, daemon=False)
         super().__init__(self._capThread)
@@ -244,8 +243,7 @@ class CapAndRecord(Interruptable):
                                          initial=list(self._frame_ring_buffer),
                                          fps=self._cam.frame_rate,
                                          height=self._cam.resolution[0],
-                                         width=self._cam.resolution[1],
-                                         output_options=self._output_options)
+                                         width=self._cam.resolution[1])
                     self._frame_ring_buffer.clear()
                 writer.write_frame(frame)
             elif not writer is None: #otherwise close writer if open
@@ -274,18 +272,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         cam_options = {}
         if settings.VID_FORCED_FRAMRATE > 0:
-            cam_options['r'] = settings.VID_FORCED_FRAMRATE
-        
-        options['crf'] = '17'
-        options['movflags'] = '+faststart'
+            cam_options['r'] = str(settings.VID_FORCED_FRAMRATE)
         
         c = CapAndRecord(cam_options={"input_format":settings.VID_INPUT_FORMAT,
                                     "videosize":settings.VID_RESOLUTION, **cam_options},
                         movement_check=settings.MOTION_CHECKS_PER_SECOND,
                         before_movement=settings.RECORD_SECONDS_BEFORE_MOVEMENT,
                         after_movement=settings.RECORD_SECONDS_AFTER_MOVEMENT,
-                        motion_threshold=settings.MOTION_DETECTION_THRESHOLD,
-                        output_options=options)
+                        motion_threshold=settings.MOTION_DETECTION_THRESHOLD)
         c.start()
         input("Press enter to stop detecting motion.")
         c.stop()
