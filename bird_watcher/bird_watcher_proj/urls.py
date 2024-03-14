@@ -26,5 +26,6 @@ urlpatterns = [
     path('video/<int:pk>', SingleVideoView.as_view(), name='video-get'),
     re_path('video/(?P<pk>[1-9][0-9]*)/stream', StreamVideoView.as_view(), name='video-stream'),
     re_path('video/0/stream', StreamVideoView.as_view(), name='video-stream'),
+    path(r'favicon.ico', RedirectView.as_view(url='static/favicon.ico', permanent=True), name='favicon'),
     path(r'', RedirectView.as_view(url='videos', permanent=True), name='index')
 ]
