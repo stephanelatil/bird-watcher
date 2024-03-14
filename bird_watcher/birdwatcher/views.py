@@ -17,13 +17,13 @@ class ThumbnailView(View):
 class VideoListView(ListView):
     model = Video
     paginate = 50
-    queryset = Video.objects.all().order_by('-date_created')
+    queryset = Video.objects.order_by('-date_created')
     template_name = 'videos.html'
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
         context = super(VideoListView, self).get_context_data(**kwargs)
-        context['videos'] = self.queryset
+        context['videos'] = self.queryset.all()
         return context
     
 class SingleVideoView(DetailView):
@@ -35,6 +35,7 @@ class SingleVideoView(DetailView):
         # Call the base implementation first to get the context
         context = super(SingleVideoView, self).get_context_data(**kwargs)
         context['video'] = context.pop('object')
+        context['tag_list'] =  list(Tag.objects.all().values_list('name',flat=True))
         return context
     
 class StreamVideoView(View):
