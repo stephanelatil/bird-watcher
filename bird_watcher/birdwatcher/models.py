@@ -6,6 +6,10 @@ class Tag(models.Model):
     name = models.CharField(max_length=32)
     #videos = related_name
     
+    def save(self, *args, **kwargs):
+        self.name = self.name.title()
+        super().save(*args ,**kwargs)
+    
 class Video(models.Model):
     video_file = models.FilePathField(path=settings.VIDEOS_DIRECTORY)
     thumbnail_file = models.ImageField(upload_to=settings.THUMBNAIL_DIRECTORY)
