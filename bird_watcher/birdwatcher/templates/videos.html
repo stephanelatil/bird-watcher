@@ -21,6 +21,26 @@
                 max-width: 48%;
             }
         }
+        body {
+            background-color: #d5d5d5; /* Soft grey background color */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Better-looking font */
+        }
+        .video-player-container {
+            background-color: #000000; /* White background for video player container */
+            border: 1px solid #b6babe; /* Discreet border */
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Soft shadow effect */
+        }
+        .video-title {
+            color: #333333; /* Darker text color for video title */
+            margin-top: 20px; /* Add space between video player and title */
+        }
+        .card {
+            background-color: #b0b0b0; /* White background for cards */
+            border: 1px solid #dee2e6; /* Discreet border */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Soft shadow effect */
+        }
     </style>
 </head>
 <body>
@@ -33,7 +53,7 @@
                 <a class="card video-card" href="/video/{{ video.pk }}">
                     <img src="{{ video.thumbnail_url }}" class="card-img-top" alt="Broken thumbnail">
                     <div class="card-body">
-                        <h5 class="card-title">{{ video.date_created }}</h5>
+                        <h5 class="card-title video-title">{{ video.date_created }}</h5>
                     </div>
                 </a>
             </div>
