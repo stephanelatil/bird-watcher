@@ -1,9 +1,13 @@
 from django.shortcuts import render
 from birdwatcher.models import Video, Tag
+from birdwatcher.forms import TagVideoForm
 from django.views.generic import View, ListView, DetailView
+from django.http import HttpRequest
 from os import stat, path, SEEK_SET
 from django.shortcuts import get_object_or_404
-from django.http import FileResponse, StreamingHttpResponse, HttpResponse
+from django.http import FileResponse, StreamingHttpResponse, HttpResponse, HttpResponseNotModified
+from django.views.generic.edit import FormMixin
+from json import loads
 
 # Create your views here.
 class ThumbnailView(View):
@@ -26,17 +30,38 @@ class VideoListView(ListView):
         context['videos'] = self.queryset.all()
         return context
     
-class SingleVideoView(DetailView):
+class SingleVideoView(DetailView, FormMixin):
     model = Video
     queryset = Video.objects.all()
     template_name = 'single_video.html'
+    form_class = TagVideoForm
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
         context = super(SingleVideoView, self).get_context_data(**kwargs)
         context['video'] = context.pop('object')
-        context['tag_list'] =  list(Tag.objects.all().values_list('name',flat=True))
+        context['tag_list'] = list(context['video'].tags.values_list('name',flat=True))
         return context
+    
+    def post(self, request:HttpRequest, *args, pk=None, **kwargs):
+        post = loads(request.body)
+        tag = get_object_or_404(Tag.objects.all(), pk=post.get('tag'))
+        vid = get_object_or_404(self.queryset, pk=pk)
+        vid.tags.add(tag)
+        vid.save()
+        return HttpResponse(tag.name, status=202)
+    
+    def delete(self, request:HttpRequest, *args, pk=None, **kwargs):
+        vid:Video = get_object_or_404(self.queryset, pk=pk)
+        post = loads(request.body)
+        tag = vid.tags.filter(name=post.get('tag'))
+        if tag.count() == 0:
+            return HttpResponseNotModified()
+        tag = tag.first()
+        vid.tags.remove(tag)
+        return HttpResponse('', status=204)
+        
+        
     
 class StreamVideoView(View):
     queryset = Video.objects.all()

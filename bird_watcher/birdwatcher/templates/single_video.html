@@ -3,15 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load django_bootstrap5 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <title>Video Page</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #d5d5d5; /* Soft grey background color */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Better-looking font */
+        }
+        .video-player-container {
+            background-color: #000000; /* White background for video player container */
+            border: 1px solid #b6babe; /* Discreet border */
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Soft shadow effect */
+        }
+        .video-title {
+            color: #333333; /* Darker text color for video title */
+            margin-top: 20px; /* Add space between video player and title */
+        }
+        .card {
+            background-color: #b0b0b0; /* White background for cards */
+            border: 2px solid #424242; /* Discreet border */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Soft shadow effect */
+        }
+    </style>
+    <script>function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');</script>
 </head>
 <body>
     <div class="container justify-content-center">
         <h1 class="text-center my-5">Video Player</h1>
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-md-8 video-player-container">
                 <!-- Video Player -->
                 <div class="embed-responsive embed-responsive-16by9 justify-content-center" style="display: flex">
                     <video class="border-dark" controls>
@@ -20,14 +60,97 @@
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center mt-3">
-            <div class="col-md-8">
+        <div class="row justify-content-center ">
+            <div class="col-md-8 video-title">
                 <!-- Video Title -->
                 <h2>{{ video.date_created }}</h2>
             </div>
         </div>
+        <div class="container mt-5">
+            <h2>Tags:</h2>
+            <div id="tagsContainer" class="d-flex flex-wrap"></div>
+        </div>
+
+        </div>
     </div>
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <form id="add-tags-form">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Add Tag" class="btn btn-box">
+    </form>
+
+        <!-- JavaScript -->
+        <script>
+                function removeTag(tag){
+                $.ajax({
+                    type:"DELETE",
+                    data:  JSON.stringify({tag:tag}),
+                    contentType: "application/json",
+                    headers: {'X-CSRFToken': csrftoken},
+                    mode: 'same-origin', // Do not send CSRF token to another domain.
+                    success: function(response, status_text, jqXHR){
+                        if (jqXHR.status == 204) {
+                            const tagElement = document.getElementById(tag);
+                            tagElement.remove();
+                            //remove from local tagList
+                            tagList = tagList.filter(function(item) {return item !== tag})
+                        } else {
+                            console.error('Failed to remove tag:', status_text);
+                        }
+                    }
+                });
+                }
+                // Function to add a tag to the list
+                function showTag(tag) {
+                    const tagsContainer = document.getElementById('tagsContainer');
+
+                    // Create a new tag element
+                    const tagElement = document.createElement('div');
+                    tagElement.id = tag;
+                    tagElement.classList.add('badge', 'bg-primary', 'me-2', 'mb-2', 'rounded-pill');
+                    tagElement.textContent = tag;
+
+                    // Create a close button for the tag
+                    const closeButton = document.createElement('button');
+                    closeButton.classList.add('btn-close', 'btn-sm');
+                    closeButton.setAttribute('aria-label', 'Close');
+                    closeButton.addEventListener('click', () => removeTag(tag));
+
+                    // Append the tag and close button to the container
+                    tagElement.appendChild(closeButton);
+                    tagsContainer.appendChild(tagElement);
+                }
+
+                // Populate tags from the tag_list variable
+                var tagList = {{ tag_list | safe}}; // Replace with your actual tag list
+                tagList.forEach(tag => showTag(tag));
+            </script>
+            <script>
+                $(document).ready(
+                  $('#add-tags-form').submit(function(e){
+                    e.preventDefault();
+                    var serialized = $(this).serialize();
+                    var dat = Object.fromEntries(new URLSearchParams(serialized));
+                    // var dat = serialized;
+                    $.ajax({
+                        type:"POST",
+                        contentType: "application/json",
+                        data:  JSON.stringify(dat),
+                        headers: {'X-CSRFToken': csrftoken},
+                        mode: 'same-origin', // Do not send CSRF token to another domain.
+                        success: function(response, status_text, jqXHR){
+                            if (jqXHR.status == 202) {
+                                if (!tagList.includes(response)){
+                                    showTag(response);
+                                    tagList.push(response);
+                                }
+                            } else {
+                                console.error('Failed to add tag:', status_text);
+                            }
+                        }
+                    });
+                  })
+                );
+            </script>
 </body>
 </html>
