@@ -60,8 +60,6 @@ class SingleVideoView(DetailView, FormMixin):
         tag = tag.first()
         vid.tags.remove(tag)
         return HttpResponse('', status=204)
-        
-        
     
 class StreamVideoView(View):
     queryset = Video.objects.all()

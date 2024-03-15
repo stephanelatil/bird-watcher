@@ -76,7 +76,7 @@
     <form id="add-tags-form">
         {% csrf_token %}
         {{ form }}
-        <input type="submit" value="Add Tag" class="btn btn-box">
+        <input type="submit" value="Add Tag" class="btn btn-primary">
     </form>
 
         <!-- JavaScript -->
@@ -107,7 +107,7 @@
                     // Create a new tag element
                     const tagElement = document.createElement('div');
                     tagElement.id = tag;
-                    tagElement.classList.add('badge', 'bg-primary', 'me-2', 'mb-2', 'rounded-pill');
+                    tagElement.classList.add('badge', 'bg-secondary', 'me-2', 'mb-2', 'rounded-pill');
                     tagElement.textContent = tag;
 
                     // Create a close button for the tag
