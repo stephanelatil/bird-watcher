@@ -1,0 +1,34 @@
+
+{% load static %}
+<header class="p-3 mb-3 border-bottom">
+    <div class="container">
+      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+        <a href="/videos" class="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none">
+          <img class="bi me-2" width="50" height="50" role="img" aria-label="Home" src="{% static 'favicon.ico' %}"></img>
+        </a>
+
+        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+            <li><a href="/videos" class="nav-link px-2 link-dark">Videos</a></li>
+            <li>
+                <div class="dropdown nav-link px-2 link-dark">
+                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="all_tags_dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Tags
+                    </a>
+                    <ul class="dropdown-menu text-small" aria-labelledby="all_tags_dropdown">
+                        {% for tag in all_tags %}
+                            <li><a class="dropdown-item" href="/videos/?tag={{ tag | urlencode }}">{{ tag }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </li>
+            <li><a href="/tags" class="nav-link px-2 link-dark">View Tags</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>

@@ -5,6 +5,7 @@ from django.views.generic import View, ListView, DetailView
 from django.http import HttpRequest
 from os import stat, path, SEEK_SET
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.http import FileResponse, StreamingHttpResponse, HttpResponse, HttpResponseNotModified
 from django.views.generic.edit import FormMixin
 from json import loads
@@ -29,20 +30,10 @@ class VideoListView(ListView):
         context = super(VideoListView, self).get_context_data(**kwargs)
         context['videos'] = self.queryset.all()
         return context
-    
-class SingleVideoView(DetailView, FormMixin):
-    model = Video
-    queryset = Video.objects.all()
-    template_name = 'single_video.html'
-    form_class = TagVideoForm
 
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get the context
-        context = super(SingleVideoView, self).get_context_data(**kwargs)
-        context['video'] = context.pop('object')
-        context['tag_list'] = list(context['video'].tags.values_list('name',flat=True))
-        return context
-    
+class VideoTagView(View):   
+    queryset = Video.objects.all()
+     
     def post(self, request:HttpRequest, *args, pk=None, **kwargs):
         post = loads(request.body)
         tag = get_object_or_404(Tag.objects.all(), pk=post.get('tag'))
@@ -60,6 +51,21 @@ class SingleVideoView(DetailView, FormMixin):
         tag = tag.first()
         vid.tags.remove(tag)
         return HttpResponse('', status=204)
+    
+class SingleVideoView(DetailView, FormMixin):
+    model = Video
+    queryset = Video.objects.all()
+    template_name = 'single_video.html'
+    form_class = TagVideoForm
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get the context
+        context = super(SingleVideoView, self).get_context_data(**kwargs)
+        context['video'] = context.pop('object')
+        context['tag_list'] = list(context['video'].tags.values_list('name',flat=True))
+        context['all_tags'] = list(Tag.objects.all().values_list('name',flat=True))
+        context['tag_url'] = reverse('video-tags', args=(context['video'].pk,))
+        return context
     
 class StreamVideoView(View):
     queryset = Video.objects.all()

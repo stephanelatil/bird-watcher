@@ -1,13 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% load django_bootstrap5 %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <title>Video Page</title>
+    {% include "header.html" %}
+    <script>function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');</script>
     <style>
         body {
             background-color: #d5d5d5; /* Soft grey background color */
@@ -30,26 +41,9 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Soft shadow effect */
         }
     </style>
-    <script>function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');</script>
 </head>
 <body>
     <div class="container justify-content-center">
-        <h1 class="text-center my-5">Video Player</h1>
         <div class="row justify-content-center">
             <div class="col-md-8 video-player-container">
                 <!-- Video Player -->
@@ -82,7 +76,7 @@
         <!-- JavaScript -->
         <script>
                 function removeTag(tag){
-                $.ajax({
+                $.ajax('{{ tag_url}}', {
                     type:"DELETE",
                     data:  JSON.stringify({tag:tag}),
                     contentType: "application/json",
@@ -124,15 +118,14 @@
                 // Populate tags from the tag_list variable
                 var tagList = {{ tag_list | safe}}; // Replace with your actual tag list
                 tagList.forEach(tag => showTag(tag));
-            </script>
-            <script>
+                
                 $(document).ready(
                   $('#add-tags-form').submit(function(e){
                     e.preventDefault();
                     var serialized = $(this).serialize();
                     var dat = Object.fromEntries(new URLSearchParams(serialized));
                     // var dat = serialized;
-                    $.ajax({
+                    $.ajax('{{ tag_url}}', {
                         type:"POST",
                         contentType: "application/json",
                         data:  JSON.stringify(dat),
