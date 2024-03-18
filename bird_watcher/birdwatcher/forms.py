@@ -9,5 +9,9 @@ class TagVideoForm(forms.ModelForm):
     class Meta:
         model = Video
         fields = ['tag']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tag'].widget.attrs['class'] = "form-select"
     
     tag = ShowNameModelChoiceField(Tag.objects.all(), label="")
