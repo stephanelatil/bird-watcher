@@ -19,28 +19,6 @@
         return cookieValue;
     }
     const csrftoken = getCookie('csrftoken');</script>
-    <style>
-        body {
-            background-color: #d5d5d5; /* Soft grey background color */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Better-looking font */
-        }
-        .video-player-container {
-            background-color: #000000; /* White background for video player container */
-            border: 1px solid #b6babe; /* Discreet border */
-            border-radius: 10px; /* Rounded corners */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Soft shadow effect */
-        }
-        .video-title {
-            color: #333333; /* Darker text color for video title */
-            margin-top: 20px; /* Add space between video player and title */
-        }
-        .card {
-            background-color: #b0b0b0; /* White background for cards */
-            border: 2px solid #424242; /* Discreet border */
-            border-radius: 8px; /* Rounded corners */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Soft shadow effect */
-        }
-    </style>
 </head>
 <body>
     <div class="container justify-content-center">
@@ -69,8 +47,10 @@
     </div>
     <form id="add-tags-form">
         {% csrf_token %}
-        {{ form }}
-        <input type="submit" value="Add Tag" class="btn btn-primary">
+        <ul class="edit-tags-ul">
+            <li class="edit-tags-li">{{ form }}</li>
+            <li class="edit-tags-li"><input type="submit" value="Add Tag" class="btn btn-primary"></li>
+        </ul>
     </form>
 
         <!-- JavaScript -->
