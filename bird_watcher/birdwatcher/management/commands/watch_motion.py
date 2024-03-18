@@ -97,9 +97,10 @@ class VideoWriter(Interruptable):
         stream.options = {'movflags':'+faststart', "crf":"18"}
         
         vid = Video.objects.create(video_file=file_path,
-                             thumbnail_file=ImageFile(thumbnail,filename[:-3]+'webp'),
                              num_frames=len(self._initial),
                              framerate=self._fps)
+        vid.thumbnail_file.save(str(vid.pk).rjust(7,'0')+'.webp', thumbnail)
+        vid.save()
         
         #write initial buffer
         for frame in self._initial:
