@@ -144,6 +144,7 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+STREAM_VID_DEVICE = env('STREAM_VID_DEVICE', default='', cast=str)
 
 VID_OUTPUT_PXL_FORMAT = env("VID_OUTPUT_PXL_FORMAT", default="yuvj444p", cast=str)
 VID_CAMERA_DEVICE = env("VID_CAMERA_DEVICE", cast=str)
