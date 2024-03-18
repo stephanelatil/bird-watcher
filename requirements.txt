@@ -2,6 +2,8 @@
 django
 django-filter
 django-bootstrap5
+fastapi #for video streaming
+uvicorn
 
 #config
 python-decouple
