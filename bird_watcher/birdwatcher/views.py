@@ -15,10 +15,11 @@ from multiprocessing import Condition
 from threading import Thread
 from asgiref.sync import sync_to_async
 from anyio import open_file
-import os
+import os, cv2
 from typing import BinaryIO
 from starlette._compat import md5_hexdigest
 from datetime import datetime
+from time import sleep
 
 api_router = APIRouter()
 
@@ -132,12 +133,12 @@ class LiveStreamVideo:
         To be able to reuse the camera device for motion detection and livestream a device
         loopback like v4l2loopback should be used
         """
-        LiveStreamVideo._singelton = self
         self._cv = Condition()
         self._frames_since_last_query = 0
         self._current_frame = b''
         self._interrupt = [False]
         self._thread = None
+        LiveStreamVideo._singelton = self
         
     def _start_thread(self):
         if not self._thread is None:
@@ -149,10 +150,22 @@ class LiveStreamVideo:
     @staticmethod
     def _run(singleton:'LiveStreamVideo'):
         #open camera and read frames
-        singleton._cv.acquire()
-        while not singleton._interrupt[0]:
-            pass
-        singleton._cv.release()
+        try:
+            sleep(0.1) #wait for frame request
+            vid = None
+            vid = cv2.VideoCapture(settings.STREAM_VID_DEVICE)
+            while not singleton._interrupt[0]:
+                flag, frame = vid.read()
+                if not flag: continue
+                with singleton._cv:
+                    singleton._current_frame = LiveStreamVideo.format_frame(cv2.imencode(".jpg", frame)[1])
+                    singleton._frames_since_last_query += 1
+                    singleton._cv.notify_all()
+                if singleton.unread_frames >= singleton._max_unread_frames:
+                    singleton._kill_thread()
+        finally:
+            if not vid is None:
+                vid.release()
     
     @property
     def unread_frames(self):
@@ -162,19 +175,19 @@ class LiveStreamVideo:
         if self._thread is None:
             return
         self._interrupt[0] = True
-        self._thread.join()
         self._thread = None
-                
 
-    def get_frame(self):
-        self._cv.wait()
+    async def get_frame(self):
+        def wait_frame(cv:Condition):
+            with cv:
+                cv.wait()
+        await sync_to_async(wait_frame)(self._cv)
         self._frames_since_last_query = 0
-        #need format_frame(cv2.imencode(".jpg", output_frame))
         return self._current_frame
     
     @staticmethod
     def format_frame(frame):
-        return (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(frame) + b'\r\n')
+        return b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + bytearray(frame) + b'\r\n'
     
     @staticmethod
     def getSingleton():
@@ -185,8 +198,10 @@ class LiveStreamVideo:
     @staticmethod
     async def livestream_frame_generator():
         stream = LiveStreamVideo.getSingleton()
+        stream._start_thread()
         while stream.unread_frames < LiveStreamVideo._max_unread_frames:
-            yield stream.get_frame()
+            yield await stream.get_frame()
+        stream._kill_thread()
         raise StopIteration()
 
 @api_router.get('/stream/live')
