@@ -158,7 +158,7 @@ class LiveStreamVideo:
                 flag, frame = vid.read()
                 if not flag: continue
                 with singleton._cv:
-                    singleton._current_frame = LiveStreamVideo.format_frame(cv2.imencode(".jpg", frame)[1])
+                    singleton._current_frame = LiveStreamVideo.format_frame(cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 70])[1])
                     singleton._frames_since_last_query += 1
                     singleton._cv.notify_all()
                 if singleton.unread_frames >= singleton._max_unread_frames:
