@@ -61,13 +61,9 @@ class VideoWriter(Interruptable):
         Path(settings.MEDIA_ROOT).joinpath(settings.VIDEOS_DIRECTORY).mkdir(0o755, True, True)
         Path(settings.MEDIA_ROOT).joinpath(settings.THUMBNAIL_DIRECTORY).mkdir(0o755, True, True)
         
-        if output_options is None:
-            output_options = {}
-        
         self._frame_queue = Queue()
         self._initial = initial if isinstance(initial, (tuple, list)) else []
         self._codec = codec
-        self._output_options = output_options
         self._fps = fps
         self._resolution = (height, width)
         self._write_thread = Thread(target=self._start_write, kwargs={"filename":filename})
