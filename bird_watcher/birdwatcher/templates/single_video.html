@@ -48,8 +48,8 @@
             <div class="col-md-8 video-player-container">
                 <!-- Video Player -->
                 <div class="embed-responsive embed-responsive-16by9 justify-content-center" style="display: flex">
-                    <video class="border-dark" controls>
-                        <source src="{{ video.pk }}/stream" type="video/mp4"/>
+                    <video controls muted="muted">
+                        <source src="/stream/{{ video.pk }}" type="video/mp4"/>
                     </video>
                 </div>
             </div>
