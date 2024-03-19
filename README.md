@@ -6,21 +6,52 @@ A self-hosted web app to be placed on a micro computer (96boards or raspberry-pi
 
 ### Installing Requirements
 
-On your device make sure to install `ffmpeg` that should be on the PATH and some libraries: `libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev`
+On your device make sure to install `ffmpeg` and `cmake` that should be on the PATH and some libraries: `libavformat-dev build-essential v4l-utils`
 
 #### For Debiam/Ubuntu
 
-simply run `sudo apt-get install ffmpeg libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev v4l-utils`
+simply run `sudo apt-get install ffmpeg cmake libavformat-dev build-essential v4l-utils`
 
-#### For Alpine Linux
+#### Installing pip requirements
 
-Run `sudo apk install ffmpeg ffmpeg-libavformat ffmpeg-libavcodec ffmpeg-libavdevice ffmpeg-libavutil ffmpeg-libswscale ffmpeg-libswresample ffmpeg-libavfilter v4l-utils`
+Install the requirements in the requirements.txt file. (It is recommended to use a venv!)
 
-### Application Parts
+Run `python3 -m pip install -r requirements.txt`
+
+### Create a `.env` file
+
+Before running the app you may have to edit some settings. All the settings can be found in the [Settings](#settings) section. You can leave most to the default, which should work fine. If your R-pi has performance issues try reducing the camera resolution.
+
+**NB**: You must set at least the Django secret key.
+
+### Running the WebApp
+
+To run the app enter the `bird_watcher` directory and run the webapp with uvicorn:
+
+```bash
+cd bird_watcher
+uvicorn bird_watcher_proj.asgi:app
+```
+
+The app is now accessible locally at [127.0.0.1:8000](http://127.0.0.1:8000)
+
+You can add `--host 0.0.0.0` to accept connections on your LAN IP and on your public IP if your have your ports open.
+You can also edit the listening port with `--port 12345` to open the app on port *12345* for example. **NB** To use ports  [1,1024] you may need to use sudo privileges.
+
+### Running the motion detector
+
+To run the motion detector part, ensure your settings are set and the camera is correctly oriented then in a new terminal run:
+
+```bash
+cd bird_watcher
+python3 manage.py watch_motion
+```
+
+## Application Parts
 
 The app is based on the Django framework. Django will handle the backend and will also create the frontend with the help of bootstrap-v5. The motion detection will be done through a Django custom command on a second process.
 
-#### Motion detector
+### Motion detector
 
 The motion detection that handles saving short videos where movement is detected.
 
@@ -30,9 +61,13 @@ The settings for the video encoding, and sensitivity of the movement detection c
 
 **NB:** If changing the `.env` file does not change the settings, try restarting your shell or clearing the environment variables.
 
-##### Settings
+### WebApp
 
-###### Required settings
+*TODO* write paragraph
+
+## Settings
+
+### Required settings
 
 These settings *must* be set as there is no default value for them. The value in the `Example Value` column may work but it is not guaranteed
 
@@ -41,7 +76,7 @@ These settings *must* be set as there is no default value for them. The value in
 |VID_CAMERA_DEVICE|The device to read the camera input from. Usually in the `/dev` directory. It may not be video0 if it is a USB device with special drivers or if multiple cameras are connected|`/dev/video0`|
 |DJANGO_SECRET_KEY|The secret key used by Django to supply tokens and other hashes|To generate one use the `get_random_secret_key()` function from the `django.core.management.utils` package|
 
-###### Optional settings
+### Optional settings
 
 |Key|Description|Default value|
 | --- | --- | --- |
