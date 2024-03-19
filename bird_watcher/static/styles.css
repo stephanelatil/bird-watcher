@@ -19,6 +19,12 @@ body {
     border-radius: 8px; /* Rounded corners */
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1); /* Soft shadow effect */
 }
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20em, 1fr));
+    grid-auto-rows: auto;
+    grid-gap: 1rem;
+}
 .edit-tags-ul {
     list-style-type: none;
     margin: 0;
@@ -29,7 +35,6 @@ body {
 .edit-tags-li {
 float: left;
 }
-
 
 .video-card {
     margin-bottom: 20px;
@@ -43,4 +48,20 @@ float: left;
         flex: 0 0 48%;
         max-width: 48%;
     }
+}
+
+a.nav-link:link
+{
+   color: black;
+   text-decoration: none;
+}
+a.nav-link:visited
+{
+   color: #202020;
+   text-decoration: none;
+}
+a.nav-link:active
+{
+   color: #202020;
+   text-decoration: none;
 }
