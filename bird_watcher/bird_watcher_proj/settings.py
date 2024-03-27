@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_bootstrap5',
+    'constance',
     'birdwatcher'
 ]
 
@@ -132,6 +133,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
@@ -151,9 +154,25 @@ VID_CAMERA_DEVICE = env("VID_CAMERA_DEVICE", cast=str)
 VID_CAMERA_FORMAT = env("VID_CAMERA_FORMAT", cast=str)
 VID_RESOLUTION = env("VID_RESOLUTION",default="640x400",cast=str)
 VID_INPUT_FORMAT = env("VID_INPUT_FORMAT", default="mjpeg", cast=str)
-VID_FORCED_FRAMRATE = env("VID_FORCED_FRAMRATE", default=-1, cast=float)
+VID_FORCED_FRAMERATE = env("VID_FORCED_FRAMERATE", default=-1, cast=float)
 
 MOTION_CHECKS_PER_SECOND = env("MOTION_CHECKS_PER_SECOND", default=2, cast=float)
-MOTION_DETECTION_THRESHOLD = env("MOTION_DETECTION_THRESHOLD", default=2, cast=float)
+MOTION_DETECTION_THRESHOLD = env("MOTION_DETECTION_THRESHOLD", default=0.07, cast=float)
 RECORD_SECONDS_BEFORE_MOVEMENT = env("RECORD_SECONDS_BEFORE_MOVEMENT", default=2, cast=float)
 RECORD_SECONDS_AFTER_MOVEMENT = env("RECORD_SECONDS_AFTER_MOVEMENT", default=2, cast=float)
+
+CONSTANCE_CONFIG = {
+    'STREAM_VID_DEVICE': (STREAM_VID_DEVICE, 'The stream video device', str),
+
+    "VID_OUTPUT_PXL_FORMAT" : (VID_OUTPUT_PXL_FORMAT, str),
+    "VID_CAMERA_DEVICE" : (VID_CAMERA_DEVICE, str),
+    "VID_CAMERA_FORMAT" : (VID_CAMERA_FORMAT, str),
+    "VID_RESOLUTION" : (VID_RESOLUTION, str),
+    "VID_INPUT_FORMAT" : (VID_INPUT_FORMAT, str),
+    "VID_FORCED_FRAMERATE" : (VID_FORCED_FRAMERATE, float),
+
+    "MOTION_CHECKS_PER_SECOND" : (MOTION_CHECKS_PER_SECOND, float),
+    "MOTION_DETECTION_THRESHOLD" : (MOTION_DETECTION_THRESHOLD, float),
+    "RECORD_SECONDS_BEFORE_MOVEMENT" : (RECORD_SECONDS_BEFORE_MOVEMENT, float),
+    "RECORD_SECONDS_AFTER_MOVEMENT" : (RECORD_SECONDS_AFTER_MOVEMENT, float),
+}

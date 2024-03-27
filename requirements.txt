@@ -7,6 +7,8 @@ uvicorn
 
 #config
 python-decouple
+django-constance
+django-picklefield
 
 #utils
 unidecode
