@@ -73,19 +73,19 @@ These settings *must* be set as there is no default value for them. The value in
 
 |Key|Description|Example Value|
 | --- | --- | --- |
-|VID_CAMERA_DEVICE|The device to read the camera input from. Usually in the `/dev` directory. It may not be video0 if it is a USB device with special drivers or if multiple cameras are connected|`/dev/video0`|
 |DJANGO_SECRET_KEY|The secret key used by Django to supply tokens and other hashes|To generate one use the `get_random_secret_key()` function from the `django.core.management.utils` package|
 
 ### Optional settings
 
 |Key|Description|Default value|
 | --- | --- | --- |
+|VID_CAMERA_DEVICE|The device to read the camera input from. Usually in the `/dev` directory. It may not be video0 if it is a USB device with special drivers or if multiple cameras are connected|`/dev/video0`|
 |VID_CAMERA_FORMAT|The camera feed decoder library. For linux `v4l2` works well and for OSX use `avfoundation` Other values can be found on [ffmpeg's documentation](https://trac.ffmpeg.org/wiki/Capture/Webcam)|`v4l2`|
-|VID_INPUT_FORMAT||`mjpeg`|
-|VID_OUTPUT_PXL_FORMAT|The pixel format **for** the video output|`yuvj444p`|
-|VID_RESOLUTION|The video resolution to be supplied by the camera. Depending on your choice of `VID_INPUT_FORMAT`, you can see available resolutions with the `ffmpeg -f v4l2 -list_formats all -i {VID_CAMERA_DEVICE}` command on linux.||
-|VID_FORCED_FRAMRATE||`-1` (Framerate auto-set by camera)|
-|MOTION_CHECKS_PER_SECOND|||
-|MOTION_DETECTION_THRESHOLD|||
-|RECORD_SECONDS_BEFORE_MOVEMENT|||
-|RECORD_SECONDS_AFTER_MOVEMENT|||
+|VID_INPUT_FORMAT|Different values are possible, usually `yuyv` and `mjpeg` are available for v4l2 webacams. `YUYV` has better image quality but a lower framerate at similar resolutions than `mjpeg` |`mjpeg`|
+|VID_OUTPUT_PXL_FORMAT|The pixel format for the video output|`yuvj422p`|
+|VID_RESOLUTION|The video resolution to be supplied by the camera. Depending on your choice of `VID_INPUT_FORMAT`, you can see available resolutions with the `ffmpeg -f v4l2 -list_formats all -i {VID_CAMERA_DEVICE}` command on linux.|`1280x720`|
+|MOTION_CHECKS_PER_SECOND|The number of times per second to check for movement on a frame. Lower numbers have more change of missing an object that quickly enters and leaves the frame but is more sensitive because there is more variation between two check-frames|`2`|
+|MOTION_DETECTION_THRESHOLD|The percentage of the screen that should change for it to be considered as a movement event. Should be between 0 and 1, lower values increase sensitivity. A value of 0 will always detect movement and a value of 1 will detect movement only if **ALL** pixels change between two check frames| `0.07`|
+|RECORD_SECONDS_BEFORE_MOVEMENT|The number of seconds to save in the recording **before** movement was detected|`2`|
+|RECORD_SECONDS_AFTER_MOVEMENT|The number of seconds to record in the same vide file after the last movement event was detected|`2`|
+|VID_FORCED_FRAMERATE|Set this value to a non-negative integer of you want to force the camera framerate to a certain value. It may fix the video captured if it looks sped up. This setting is usually not used|`-1`|
