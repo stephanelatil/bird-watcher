@@ -23,13 +23,11 @@
 <body>
     <div class="container justify-content-center">
         <div class="row justify-content-center">
-            <div class="col-md-8 video-player-container">
-                <!-- Video Player -->
-                <div class="embed-responsive embed-responsive-16by9 justify-content-center" style="display: flex">
-                    <video controls muted="muted">
-                        <source src="/stream/{{ video.pk }}" type="video/mp4"/>
-                    </video>
-                </div>
+            <!-- Video Player -->
+            <div class="embed-responsive embed-responsive-16by9 imgbox justify-content-center" style="display: flex">
+                <video controls class="center-fit muted="muted">
+                    <source src="/stream/{{ video.pk }}" type="video/mp4"/>
+                </video>
             </div>
         </div>
         <div class="row justify-content-center ">
