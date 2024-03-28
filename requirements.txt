@@ -13,6 +13,9 @@ django-picklefield
 #utils
 unidecode
 
+# for multiprocess management
+filelock
+
 #video management
 Pillow
 opencv-python

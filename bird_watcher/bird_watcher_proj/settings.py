@@ -135,6 +135,8 @@ USE_TZ = True
 
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
+LOCK_FILE = 'birdwatcher.lock'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
@@ -162,10 +164,7 @@ RECORD_SECONDS_BEFORE_MOVEMENT = env("RECORD_SECONDS_BEFORE_MOVEMENT", default=2
 RECORD_SECONDS_AFTER_MOVEMENT = env("RECORD_SECONDS_AFTER_MOVEMENT", default=2, cast=float)
 
 CONSTANCE_CONFIG = {
-    'STREAM_VID_DEVICE': (STREAM_VID_DEVICE, 'The stream video device', str),
-
     "VID_OUTPUT_PXL_FORMAT" : (VID_OUTPUT_PXL_FORMAT, str),
-    "VID_CAMERA_DEVICE" : (VID_CAMERA_DEVICE, str),
     "VID_CAMERA_FORMAT" : (VID_CAMERA_FORMAT, str),
     "VID_RESOLUTION" : (VID_RESOLUTION, str),
     "VID_INPUT_FORMAT" : (VID_INPUT_FORMAT, str),
