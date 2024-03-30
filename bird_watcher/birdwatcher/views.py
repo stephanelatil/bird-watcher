@@ -30,7 +30,7 @@ class GlobalContextMixin:
             context = super().get_context_data(**kwargs)
         except:
             context = {}
-        context['all_tags'] = list(Tag.objects.all().values_list('name',flat=True))
+        context['all_tags'] = list(t.name for t in Tag.objects.all())
         if 'video' in context:
             context['url_edit_video_tags'] = reverse(VideoTagView.url_name, args=(context['video'].pk,))
             context['url_this_video'] = reverse(SingleVideoView.url_name, args=(context['video'].pk,))
@@ -41,7 +41,7 @@ class GlobalContextMixin:
 #####################
 ###### Pages
 
-class VideoListView(ListView, GlobalContextMixin):
+class VideoListView(GlobalContextMixin, ListView):
     model = Video
     paginate = 50
     queryset = Video.objects.order_by('-date_created')
@@ -50,11 +50,9 @@ class VideoListView(ListView, GlobalContextMixin):
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
-        context = super(VideoListView, self).get_context_data(**kwargs)
-        context['videos'] = self.queryset.all()
-        return context
+        return super().get_context_data(**kwargs)
 
-class LiveStreamView(View, GlobalContextMixin):
+class LiveStreamView(GlobalContextMixin, View):
     template_name = 'livestream.html'
     url_name = 'video-livestream'
     # must check if secondary video device is accessible
@@ -64,7 +62,7 @@ class LiveStreamView(View, GlobalContextMixin):
         context = {}
         return render(request, self.template_name, context)
     
-class SingleVideoView(DetailView, FormMixin, GlobalContextMixin):
+class SingleVideoView(GlobalContextMixin, FormMixin, DetailView):
     model = Video
     queryset = Video.objects.all()
     template_name = 'single_video.html'
@@ -73,10 +71,9 @@ class SingleVideoView(DetailView, FormMixin, GlobalContextMixin):
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
-        context = super(SingleVideoView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['video'] = context.pop('object')
         context['tag_list'] = list(context['video'].tags.values_list('name',flat=True))
-        context['all_tags'] = list(Tag.objects.all().values_list('name',flat=True))
         context['tag_url'] = reverse('video-tags', args=(context['video'].pk,))
         return context
 
