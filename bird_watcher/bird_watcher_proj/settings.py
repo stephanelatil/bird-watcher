@@ -43,8 +43,8 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', cast=str)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '172.26.19.205']
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.8:8000', 'http://127.0.0.8', 'http://172.26.19.205:8000', 'http://172.26.19.205']
+ALLOWED_HOSTS = ['127.0.0.1', env('WEBAPP_HOST', cast=str)]
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.8:8000', 'http://127.0.0.8', f'http://{env("WEBAPP_HOST", cast=str)}:env("WEBAPP_PORT", cast=str)', f'http://{env("WEBAPP_HOST", cast=str)}']
 
 
 # Application definition
