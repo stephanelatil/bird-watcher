@@ -16,7 +16,6 @@ def delete_lock_file_on_delete(*args, **kwargs):
                 remove(settings.LOCK_FILE)
         except:
             pass
-    raise KeyboardInterrupt()
 
 @receiver(config_updated)
 def start_or_restart_birdwatcher_process(sender, key, old_value, new_value, **kwargs):
