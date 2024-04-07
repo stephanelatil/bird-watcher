@@ -34,9 +34,9 @@ def _kill_and_start_birdwatcher(start_new_birdwatcher=True):
             #wait for birdwatcher to stop (will return immediately if it's not running)
             with lock.acquire(timeout=5): pass
             
-            #start new birdwatcher
-            if start_new_birdwatcher:
-                _start_birdwatcher()
+        #start new birdwatcher
+        if start_new_birdwatcher:
+            _start_birdwatcher()
             
     except filelock.Timeout:
         #another thread/process is restarting so nothing to do
