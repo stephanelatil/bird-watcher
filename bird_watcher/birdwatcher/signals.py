@@ -1,4 +1,3 @@
-import signal
 from django.conf import settings
 from django.dispatch import receiver
 import filelock
@@ -7,7 +6,7 @@ from constance.signals import config_updated
 from birdwatcher.utils import kill_and_restart_birdwatcher
 
 
-def delete_lock_file_on_delete(signum, stackframe):
+def delete_lock_file_on_delete(*args, **kwargs):
     #release locks
     for lock in (filelock.FileLock(settings.LOCK_FILE+'stop'),
                  filelock.FileLock(settings.LOCK_FILE)):
@@ -18,9 +17,6 @@ def delete_lock_file_on_delete(signum, stackframe):
         except:
             pass
     raise KeyboardInterrupt()
-
-signal.signal(signal.SIGINT, delete_lock_file_on_delete)
-signal.signal(signal.SIGTERM, delete_lock_file_on_delete)
 
 @receiver(config_updated)
 def start_or_restart_birdwatcher_process(sender, key, old_value, new_value, **kwargs):
