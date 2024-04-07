@@ -3,7 +3,7 @@ import numpy as np
 from threading import Thread
 from multiprocessing import Queue
 from pathlib import Path
-import av
+import av, os, sys
 from datetime import datetime
 from collections import deque
 from django.conf import settings
@@ -217,6 +217,8 @@ class CapAndRecord(Interruptable):
         self._motion_threshold = motion_threshold
     
     def _run(self):
+        sys.stdout = open(os.devnull, "w")
+        sys.stderr = open(os.devnull, "w")
         motion = MotionDetector(shrink_ratio=1/20, mov_on_frame_amount=self._motion_threshold,
                                 #mov check twice a sec
                                 mov_check_every=self._frame_movement_check)
