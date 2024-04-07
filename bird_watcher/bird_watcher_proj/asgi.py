@@ -47,8 +47,3 @@ def get_application() -> FastAPI:
     return app    
 
 app = get_application()
-
-@app.on_event("shutdown")
-def shutdown_event():
-    with open("log.txt", mode="a") as log:
-        log.write("Application shutdown")
