@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from birdwatcher.models import Video, Tag
 from birdwatcher.forms import TagVideoForm
+from birdwatcher.utils import kill_and_restart_birdwatcher
 from django.views.generic import View, ListView, DetailView
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
@@ -305,3 +306,7 @@ async def stream_video_file(request:Request, pk:int):
 async def get_favicon():
     # Step 6: Return the favicon.ico file using FileResponse
     return FileResponse("static/favicon.ico")
+
+@api_router.put("/birdwatcher/restart")
+async def restart_watcher():
+    kill_and_restart_birdwatcher(True)
