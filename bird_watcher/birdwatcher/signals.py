@@ -6,6 +6,7 @@ from os import remove
 from constance.signals import config_updated
 from birdwatcher.utils import kill_and_restart_birdwatcher
 
+
 def delete_lock_file_on_delete(signum, stackframe):
     #release locks
     for lock in (filelock.FileLock(settings.LOCK_FILE+'stop'),
@@ -16,6 +17,7 @@ def delete_lock_file_on_delete(signum, stackframe):
                 remove(settings.LOCK_FILE)
         except:
             pass
+    raise KeyboardInterrupt()
 
 signal.signal(signal.SIGINT, delete_lock_file_on_delete)
 signal.signal(signal.SIGTERM, delete_lock_file_on_delete)
