@@ -61,3 +61,7 @@ def setup_logging():
             respect_handler_level=True)
         listener.start()
         atexit.register(listener.stop)
+        
+def watcher_is_running() -> bool:
+    lock = filelock.FileLock(settings.LOCK_FILE)
+    return lock.is_locked
