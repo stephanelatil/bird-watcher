@@ -22,7 +22,7 @@
         "class": "logging.handlers.RotatingFileHandler",
         "level": "DEBUG",
         "formatter": "detailed",
-        "filename": "logs/birdwatcher.log",
+        "filename": "birdwatcher.log",
         "maxBytes": 100000,
         "backupCount": 2
       },

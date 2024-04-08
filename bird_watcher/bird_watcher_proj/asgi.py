@@ -22,11 +22,13 @@ from starlette.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from birdwatcher.views import api_router
-from birdwatcher.signals import delete_lock_file_on_delete
-from birdwatcher.utils import setup_logging
+from os import mkdir, path
+from birdwatcher.utils import setup_logging, delete_lock_file_on_delete
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    mkdir(path.join(settings.MEDIA_ROOT, settings.VIDEOS_DIRECTORY))
+    mkdir(path.join(settings.MEDIA_ROOT, settings.THUMBNAIL_DIRECTORY))
     setup_logging()
     delete_lock_file_on_delete()
     yield
