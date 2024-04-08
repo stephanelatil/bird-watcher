@@ -23,9 +23,12 @@ from contextlib import asynccontextmanager
 
 from birdwatcher.views import api_router
 from birdwatcher.signals import delete_lock_file_on_delete
+from birdwatcher.utils import setup_logging
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    setup_logging()
+    delete_lock_file_on_delete()
     yield
     # Clean up
     delete_lock_file_on_delete()
