@@ -4,12 +4,11 @@ import filelock, sys
 from django.conf import settings
 from threading import Thread
 from subprocess import Popen
-from pathlib import Path
-import logging.config
+import logging
 import logging.handlers
+from multiprocessing import Queue
 import atexit
 from os import remove
-from json import load
 
 def _kill_birdwatcher():
     lock, stop_lock = filelock.FileLock(settings.LOCK_FILE), filelock.FileLock(settings.LOCK_FILE+'stop')
@@ -41,27 +40,43 @@ def kill_and_restart_birdwatcher(start_new_birdwatcher=True):
         Thread(target=_kill_birdwatcher, daemon=True).start()
 
 def setup_logging():
-    def get_handler_by_name(name) -> logging.Handler|None:
-        for h in logging.getLogger().handlers:
-            if h.name == name:
-                return h
-        return None
-    #setup logging config
-    config_file = Path("birdwatcher/logging_config.json")
-    with open(config_file, 'r') as f:
-        config = load(f)
-    logging.config.dictConfig(config)
+    root_logger = logging.getLogger()
     
-    #start logging thread
-    queue_handler = get_handler_by_name("queue_handler")
-    if isinstance(queue_handler, logging.handlers.QueueHandler):
-        listener = logging.handlers.QueueListener(
-            queue_handler.queue,
-            config["handlers"]["queue_handler"]["handlers"],
-            respect_handler_level=True)
-        listener.start()
-        atexit.register(listener.stop)
-        
+    #create formatters here
+    
+    simple_formatter = logging.Formatter("[{levelname}]: {message}",
+                               datefmt="%Y/%m/%d-T%H:%M:%S%z",
+                               style='{')
+    detailed_formatter = logging.Formatter("[{levelname}|{filename}|L_{lineno}] {asctime}: {message}",
+                               datefmt="%Y/%m/%d-T%H:%M:%S%z",
+                               style='{')
+    
+    #Create filters here (if applicable)
+    
+    #create handlers here
+    stdout_handler = logging.StreamHandler(sys.stderr)
+    stdout_handler.setFormatter(simple_formatter)
+    stdout_handler.setLevel(logging.WARNING)
+    
+    logfile_handler = logging.handlers.RotatingFileHandler("birdwatcher.log",
+                                                           maxBytes=100_000, 
+                                                           backupCount=2,
+                                                           encoding='utf-8')
+    logfile_handler.setFormatter(detailed_formatter)
+    logfile_handler.setLevel(logging.INFO)
+    
+    # create queue handler
+    queue_handler = logging.handlers.QueueHandler(Queue())
+    listener = logging.handlers.QueueListener(queue_handler.queue,
+                                              stdout_handler,
+                                              logfile_handler,
+                                              respect_handler_level=True)
+    listener.start()
+    atexit.register(listener.stop)
+    
+    # add queue handler to root logger for app
+    root_logger.addHandler(queue_handler)
+
 def watcher_is_running() -> bool:
     lock = filelock.FileLock(settings.LOCK_FILE)
     return lock.is_locked
