@@ -1,4 +1,12 @@
 {% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+<link rel="stylesheet" href="/static/styles.css" type="text/css"/>
+{% bootstrap_javascript %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
 <header class="p-3 mb-3 border-bottom">
   <div class="container">
     <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
@@ -6,7 +14,7 @@
         <img class="bi me-2" width="50" height="50" role="img" aria-label="Home" src="{% static 'favicon.ico' %}"></img>
       </a>
 
-      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 mb-md-0">
           <li><a href="/videos" class="nav-link px-2 link-dark">Videos</a></li>
           <li><a href="/livestream" class="nav-link px-2 link-dark">Livestream</a></li>
           <li><a href="/tags" class="nav-link px-2 link-dark">View Tags</a></li>
@@ -16,8 +24,7 @@
                       Tags
                   </a>
                   <ul class="dropdown-menu text-small" aria-labelledby="all_tags_dropdown">
-                      {% for tag in all_tags %}
-                          <li><a class="dropdown-item" href="/videos/?tag={{ tag | urlencode }}">{{ tag }}</a></li>
+                      {% for tag in all_tags %}<li><a class="dropdown-item" href="/videos/?tag={{ tag | urlencode }}">{{ tag }}</a></li>
                       {% endfor %}
                   </ul>
               </div>
@@ -26,10 +33,3 @@
     </div>
   </div>
 </header>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-{% load django_bootstrap5 %}
-{% bootstrap_css %}
-<link rel="stylesheet" href="/static/styles.css" type="text/css"/>
-{% bootstrap_javascript %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
