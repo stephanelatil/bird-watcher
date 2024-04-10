@@ -6,11 +6,11 @@ A self-hosted web app to be placed on a micro computer (96boards or raspberry-pi
 
 ### Installing Requirements
 
-On your device make sure to install `ffmpeg`  that should be on the PATH and some libraries: `libavformat-dev libavdevice-dev v4l-utils python-dev`
+On your device make sure to install `ffmpeg`  that should be on the PATH and some libraries: `libavformat-dev libavdevice-dev v4l-utils python3-dev`
 
 #### For Debiam/Ubuntu
 
-simply run `sudo apt-get install ffmpeg libavdevice-dev libavformat-dev v4l-utils python-dev`
+simply run `sudo apt-get install ffmpeg libavdevice-dev libavformat-dev v4l-utils python3-dev`
 
 #### Installing pip requirements
 
