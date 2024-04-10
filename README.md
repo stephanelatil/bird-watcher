@@ -10,7 +10,7 @@ On your device make sure to install `ffmpeg`  that should be on the PATH and som
 
 #### For Debiam/Ubuntu
 
-simply run `sudo apt-get install ffmpeg libavdevice libavformat-dev v4l-utils`
+simply run `sudo apt-get install ffmpeg libavdevice-dev libavformat-dev v4l-utils`
 
 #### Installing pip requirements
 
