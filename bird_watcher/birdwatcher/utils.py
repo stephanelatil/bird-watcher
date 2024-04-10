@@ -10,6 +10,8 @@ from multiprocessing import Queue
 import atexit
 from os import remove
 
+logger = logging.getLogger(settings.PROJECT_NAME)
+
 def _kill_birdwatcher():
     lock, stop_lock = filelock.FileLock(settings.LOCK_FILE), filelock.FileLock(settings.LOCK_FILE+'stop')
     try:
@@ -87,7 +89,7 @@ def setup_logging():
     #create handlers here
     stdout_handler = logging.StreamHandler(sys.stderr)
     stdout_handler.setFormatter(simple_formatter)
-    stdout_handler.setLevel(logging.WARNING)
+    stdout_handler.setLevel(logging.getLevelName(settings.LOGGING_LEVEL))
     
     logfile_handler = logging.handlers.RotatingFileHandler("birdwatcher.log",
                                                            maxBytes=100_000, 
