@@ -26,10 +26,12 @@ Before running the app you may have to edit some settings. All the settings can 
 
 ### Running the WebApp
 
-To run the app enter the `bird_watcher` directory and run the webapp with uvicorn:
+To run the app enter the `bird_watcher` directory and build the database (only needed once) then run the webapp with uvicorn:
 
 ```bash
 cd bird_watcher
+python3 manage.py makemigrations birdwatcher
+python3 manage.py migrate
 uvicorn bird_watcher_proj.asgi:app
 ```
 
