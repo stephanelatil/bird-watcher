@@ -27,8 +27,6 @@ from birdwatcher.utils import setup_logging, delete_lock_file_on_delete
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Path(settings.MEDIA_ROOT).joinpath(settings.VIDEOS_DIRECTORY).mkdir(parents=True, exist_ok=True)
-    Path(settings.MEDIA_ROOT).joinpath(settings.THUMBNAIL_DIRECTORY).mkdir(parents=True, exist_ok=True)
     setup_logging()
     delete_lock_file_on_delete()
     yield
@@ -44,6 +42,9 @@ def get_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    #ensure paths exist
+    Path(settings.MEDIA_ROOT).joinpath(settings.VIDEOS_DIRECTORY).mkdir(parents=True, exist_ok=True)
+    Path(settings.MEDIA_ROOT).joinpath(settings.THUMBNAIL_DIRECTORY).mkdir(parents=True, exist_ok=True)
     app.mount("/static", StaticFiles(directory="static"), name="static")
     app.mount("/thumbnails", StaticFiles(directory="assets/thumbnails"), name="thumbnail")
     app.include_router(api_router, prefix="")
