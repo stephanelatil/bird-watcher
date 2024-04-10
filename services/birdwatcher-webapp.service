@@ -1,0 +1,13 @@
+[Unit]
+Description=Service to send video data from the /dev/video0 to the loopback devices of /dev/video100 and /dev/video101
+
+[Service]
+User=root
+#Enter here the location of the bird_watcher directory of the bird-watcher git repo for example
+WorkingDirectory=/home/pi/bird-watcher/bird_watcher
+ExecStart=../.venv/bin/python3 -m uvicorn bird_watcher_proj.asgi:app --host 0.0.0.0
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
