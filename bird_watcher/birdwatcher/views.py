@@ -151,7 +151,12 @@ class LiveStreamVideo:
         try:
             sleep(0.1) #wait for frame request
             vid = None
-            vid = cv2.VideoCapture(settings.STREAM_VID_DEVICE)
+            vid = cv2.VideoCapture(settings.STREAM_VID_DEVICE, cv2.CAP_V4L2)
+            try:
+                width, height = str(settings.VID_RESOLUTION).split('x',1)
+                vid.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
+                vid.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
+            except: pass
             while not singleton._interrupt[0]:
                 flag, frame = vid.read()
                 if not flag: continue
