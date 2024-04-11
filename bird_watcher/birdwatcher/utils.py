@@ -1,45 +1,23 @@
 import logging.config
 import logging.handlers
-import filelock, sys
+import sys
 from django.conf import settings
-from threading import Thread
-from subprocess import Popen
 import logging
 import logging.handlers
 from multiprocessing import Queue
 import atexit
-from os import remove
+from pystemd.systemd1 import Unit
 
+motion_detect_unit = Unit("birdwatcher-motion-detection.service")
+motion_detect_unit.load()
 logger = logging.getLogger(settings.PROJECT_NAME)
 
-def _kill_birdwatcher():
-    lock, stop_lock = filelock.FileLock(settings.LOCK_FILE), filelock.FileLock(settings.LOCK_FILE+'stop')
-    try:
-        with stop_lock.acquire(blocking=False):
-            # Get the stop_lock (if locked the birdwatcher will detect it and stop itself)
-            # wait for birdwatcher to stop (will return immediately if it's not running)
-            with lock.acquire(timeout=5): pass                   
-    except filelock.Timeout:
-        #another thread/process is restarting so nothing to do
-        pass
-    
-def delete_lock_file_on_delete(*args, **kwargs):
-    #release locks
-    for lock in (filelock.FileLock(settings.LOCK_FILE+'stop'),
-                 filelock.FileLock(settings.LOCK_FILE)):
-        try:
-            remove(settings.LOCK_FILE)
-        except:
-            pass
+def kill_birdwatcher():
+    motion_detect_unit.Unit.Stop(b'replace')
     
 
-def kill_and_restart_birdwatcher(start_new_birdwatcher=True):
-    if start_new_birdwatcher:
-        #kills and restarts in new process
-        Popen([sys.executable, 'manage.py', "watch_motion", "--kill-existing"])
-    else:
-        #just kills birdwatcher
-        Thread(target=_kill_birdwatcher, daemon=True).start()
+def start_or_restart_birdwatcher():
+    motion_detect_unit.Unit.Restart(b'replace')
         
 class ColoredSimpleFormatter(logging.Formatter):
     green = "\x1b[32m"
@@ -112,5 +90,4 @@ def setup_logging():
     root_logger.setLevel(settings.LOGGING_LEVEL)
 
 def watcher_is_running() -> bool:
-    lock = filelock.FileLock(settings.LOCK_FILE)
-    return lock.is_locked
+    return motion_detect_unit.Unit.ActiveState == b'active'

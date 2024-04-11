@@ -270,30 +270,17 @@ class Command(BaseCommand):
     
     def handle(self, *args, **options):
         setup_logging()
-        lock, stop_lock = filelock.FileLock(settings.LOCK_FILE), filelock.FileLock(settings.LOCK_FILE+'stop')
-        try:
-            with stop_lock.acquire(blocking=False):
-                #Get the stop_lock (if locked the birdwatcher will detect it and stop itself)
-                
-                #wait for birdwatcher to stop (will return immediately if it's not running)
-                with lock.acquire(timeout=5): pass
-        except filelock.Timeout:
-            #cannot stop current or another stop is already requested
-            return
         
         cam_options = {}
         if settings.VID_FORCED_FRAMERATE > 0:
             cam_options['r'] = str(settings.VID_FORCED_FRAMERATE)
         
-        with lock.acquire():
-            c = CapAndRecord(cam_options={"input_format":settings.VID_INPUT_FORMAT,
-                                        "videosize":settings.VID_RESOLUTION, **cam_options},
-                            movement_check=settings.MOTION_CHECKS_PER_SECOND,
-                            before_movement=settings.RECORD_SECONDS_BEFORE_MOVEMENT,
-                            after_movement=settings.RECORD_SECONDS_AFTER_MOVEMENT,
-                            motion_threshold=settings.MOTION_DETECTION_THRESHOLD)
-            c.start()
-            while not stop_lock.is_locked:
-                sleep(0.5) #poll to see if stop is demanded
-            input("Press enter to stop detecting motion.")
-            c.stop()
+        c = CapAndRecord(cam_options={"input_format":settings.VID_INPUT_FORMAT,
+                                    "videosize":settings.VID_RESOLUTION, **cam_options},
+                        movement_check=settings.MOTION_CHECKS_PER_SECOND,
+                        before_movement=settings.RECORD_SECONDS_BEFORE_MOVEMENT,
+                        after_movement=settings.RECORD_SECONDS_AFTER_MOVEMENT,
+                        motion_threshold=settings.MOTION_DETECTION_THRESHOLD)
+        c.start()
+        input("Press enter to stop detecting motion.")
+        c.stop()

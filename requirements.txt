@@ -14,9 +14,6 @@ django-picklefield
 unidecode
 pystemd
 
-# for multiprocess management
-filelock
-
 #video management
 Pillow
 opencv-python
