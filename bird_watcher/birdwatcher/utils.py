@@ -65,7 +65,7 @@ def setup_logging():
     #Create filters here (if applicable)
     
     #create handlers here
-    stdout_handler = logging.StreamHandler(sys.stderr)
+    stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setFormatter(simple_formatter)
     stdout_handler.setLevel(logging.getLevelName(settings.LOGGING_LEVEL))
     

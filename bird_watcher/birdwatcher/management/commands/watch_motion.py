@@ -3,8 +3,7 @@ import numpy as np
 from threading import Thread
 from multiprocessing import Queue
 from pathlib import Path
-import av, os, sys, filelock
-from time import sleep
+import av, os, sys, logging
 from datetime import datetime
 from collections import deque
 from django.conf import settings
@@ -12,6 +11,8 @@ from django.core.management import BaseCommand
 from birdwatcher.models import Video
 from birdwatcher.utils import setup_logging
 from os import path
+
+logger = logging.getLogger(settings.PROJECT_NAME)
 
 class StaticThreadInterrupt:
     _INTERRUPT = False
@@ -57,11 +58,12 @@ class Interruptable:
             StaticThreadInterrupt.interrupt_all()
 
 class VideoWriter(Interruptable):
-    def __init__(self, filename, initial=None, codec="libx264", fps=30, height=1080, width=1920) -> None:
+    def __init__(self, filename, initial=None, codec="h264_omv", fps=30, height=1080, width=1920) -> None:
         #ensure assets dir exists
         Path(settings.MEDIA_ROOT).joinpath(settings.VIDEOS_DIRECTORY).mkdir(0o755, True, True)
         Path(settings.MEDIA_ROOT).joinpath(settings.THUMBNAIL_DIRECTORY).mkdir(0o755, True, True)
         
+        logger.debug("Starting video writer")
         self._frame_queue = Queue()
         self._initial = initial if isinstance(initial, (tuple, list)) else []
         self._codec = codec
@@ -69,6 +71,7 @@ class VideoWriter(Interruptable):
         self._resolution = (height, width)
         self._write_thread = Thread(target=self._start_write, kwargs={"filename":filename})
         super().__init__(self._write_thread)
+        logger.debug("Starting Video Writer Thread")
         self._write_thread.start()
         
     def _start_write(self, filename):
@@ -85,6 +88,7 @@ class VideoWriter(Interruptable):
                     [cv2.IMWRITE_WEBP_QUALITY, 95])
         thumbnail = np.array(thumbnail).tobytes()
         thumbnail = io.BytesIO(thumbnail)
+        logger.debug("Generating thumbnail")
 
         file_path = str(path.join(settings.MEDIA_ROOT, settings.VIDEOS_DIRECTORY, filename))
         container = av.open(file_path, mode="w")
@@ -92,12 +96,14 @@ class VideoWriter(Interruptable):
         stream.height,stream.width = self._resolution
         stream.pix_fmt = settings.VID_OUTPUT_PXL_FORMAT
         stream.options = {'movflags':'+faststart', "crf":"18"}
+        logger.debug(f"Creating video file \"{file_path}\"")
         
         vid = Video.objects.create(video_file=file_path,
                              num_frames=len(self._initial),
                              framerate=self._fps)
         vid.thumbnail_file.save(str(vid.pk).rjust(7,'0')+'.webp', thumbnail)
         vid.save()
+        logger.debug(f"Created video entry pk={vid.pk} and saved thumbnail")
         
         #write initial buffer
         for frame in self._initial:
@@ -105,6 +111,7 @@ class VideoWriter(Interruptable):
             # for packet in stream.encode(frame):
             #     container.mux(packet)
             container.mux(stream.encode(frame))
+        logger.debug(f"Wrote first {len(self._initial)} frames")
         del self._initial #clear mem
                 
         #write other frames
@@ -121,10 +128,12 @@ class VideoWriter(Interruptable):
 
 
         vid.save()
+        logger.debug(f"Wrote all {vid.num_frames} frames and flushing final data")
         #flush steam
         for packet in stream.encode():
             container.mux(packet)
         container.close()
+        logger.debug(f"Video container written fully")
     
     def write_frame(self, frame):
         self._frame_queue.put_nowait(frame)
@@ -132,6 +141,7 @@ class VideoWriter(Interruptable):
     def close(self):
         if self.is_interrupted:
             return #already interrupted
+        logger.debug('Stopping writer thread')
         self.interrupt()
         self._write_thread.join()
         
@@ -143,6 +153,7 @@ class MotionDetector:
         self._mov_check_every = mov_check_every
         self._frame_check_num = 0
         self._mov_on_frame_amount = mov_on_frame_amount
+        logger.debug("Starting Motion Detector")
     
     def _gray_and_resize_frame(self, frame:cv2.typing.MatLike) -> cv2.typing.MatLike:
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
@@ -169,14 +180,19 @@ class MotionDetector:
         self.update_backgroud(frame)
         _,diff = cv2.threshold(diff, 45, 255, cv2.THRESH_BINARY)
         num_pixels_theshold = self._mov_on_frame_amount*diff.shape[0]*diff.shape[1]
-        if cv2.countNonZero(diff) > num_pixels_theshold:
+        nonZero = cv2.countNonZero(diff)
+        if nonZero > num_pixels_theshold:
+            logging.debug(f"Motion check MOVEMENT {nonZero}/{num_pixels_theshold}")
             return True
+        logging.debug(f"Motion check nothing: {nonZero}/{num_pixels_theshold}")
         return False
 
 class CamInterface:
     def __init__(self, options=None):
         if options is None:
             options = {}
+        logger.debug(f"Starting CamInterface on {settings.VID_CAMERA_DEVICE} with options: {options}")
+        sys.stderr = open(os.devnull, "w")
         self._camera = av.open(file=settings.VID_CAMERA_DEVICE,
                             format='v4l2', options=options)
         self._frame_generator = self._camera.decode(video=0)
@@ -184,7 +200,7 @@ class CamInterface:
             frame = next(self._frame_generator)
         self._resolution = frame.to_ndarray(format='rgb24').shape[:2]
         self._fps = self._camera.streams.video[0].base_rate
-        self._closed = False
+        logger.debug(f"CamInterface started with resolution {self._resolution} and {self._fps} FPS")
         
     def get_next_frame(self):
         if self._frame_generator is None:
@@ -215,53 +231,59 @@ class CapAndRecord(Interruptable):
         self._record_n_frames_without_movement = self._cam.frame_rate*after_movement
         self._frame_ring_buffer = deque(maxlen=int(self._cam.frame_rate*before_movement))
         self._motion_threshold = motion_threshold
+        logger.debug(f"Motion Detection and capture created: Check every {self._frame_movement_check} frames")
     
     def _run(self):
-        sys.stdout = open(os.devnull, "w")
-        sys.stderr = open(os.devnull, "w")
-        motion = MotionDetector(shrink_ratio=1/20, mov_on_frame_amount=self._motion_threshold,
-                                #mov check twice a sec
-                                mov_check_every=self._frame_movement_check)
-        writer = None
-        frames_without_motion = 0
-        
-        while not self.is_interrupted:
-            frame = self._cam.get_next_frame()
-            frames_without_motion -= 1
-            if frame is None:
-                raise EOFError('Camera interface is closed')
-            self._frame_ring_buffer.append(frame)
-            #on every nth frame check for movement
-            if motion.has_movement(frame):
-                frames_without_motion = self._record_n_frames_without_movement
-                    
-            #motion detected within frame limit
-            if frames_without_motion > 0:
-                if writer is None:
-                    writer = VideoWriter(datetime.now().strftime("%Y-%m-%d_%H-%M-%S.mp4"),
-                                         initial=list(self._frame_ring_buffer),
-                                         fps=self._cam.frame_rate,
-                                         height=self._cam.resolution[0],
-                                         width=self._cam.resolution[1])
-                    self._frame_ring_buffer.clear()
-                writer.write_frame(frame)
-            elif not writer is None: #otherwise close writer if open
-                writer.close()
-                writer = None
+        try:
+            logger.info("Motion Detection and Capture starting")
+            motion = MotionDetector(shrink_ratio=1/20, mov_on_frame_amount=self._motion_threshold,
+                                    #mov check twice a sec
+                                    mov_check_every=self._frame_movement_check)
+            writer = None
+            frames_without_motion = 0
             
-        #flush and close all
-        if not writer is None:
-            writer.close()
-        self._cam.close()
+            while not self.is_interrupted:
+                frame = self._cam.get_next_frame()
+                frames_without_motion -= 1
+                if frame is None:
+                    raise EOFError('Camera interface is closed')
+                self._frame_ring_buffer.append(frame)
+                #on every nth frame check for movement
+                if motion.has_movement(frame):
+                    frames_without_motion = self._record_n_frames_without_movement
+                        
+                #motion detected within frame limit
+                if frames_without_motion > 0:
+                    if writer is None:
+                        writer = VideoWriter(datetime.now().strftime("%Y-%m-%d_%H-%M-%S.mp4"),
+                                            initial=list(self._frame_ring_buffer),
+                                            fps=self._cam.frame_rate,
+                                            height=self._cam.resolution[0],
+                                            width=self._cam.resolution[1])
+                        self._frame_ring_buffer.clear()
+                    writer.write_frame(frame)
+                elif not writer is None: #otherwise close writer if open
+                    logger.debug(f"No motion detected for {frames_without_motion}. Stopping writer")
+                    writer.close()
+                    writer = None
+        except:
+            logger.exception("Error in CapAndRecord")
+        finally:
+            #flush and close all
+            if not writer is None:
+                writer.close()
+            self._cam.close()
+            logger.info("Motion Detection and Capture Thread stopping")
             
     def start(self):
         self._capThread.start()
 
     def stop(self):
+        logger.debug(f"Motion Detection and capture STOP requested")
         #interrupts all threads and joins them
         self.interrupt(global_interrupt=True)
         self._capThread.join() #last join just for good measure
-        
+        logger.debug(f"Motion Detection and capture stopped successfully")
 
 
 class Command(BaseCommand):
@@ -277,10 +299,12 @@ class Command(BaseCommand):
         
         c = CapAndRecord(cam_options={"input_format":settings.VID_INPUT_FORMAT,
                                     "videosize":settings.VID_RESOLUTION, **cam_options},
-                        movement_check=settings.MOTION_CHECKS_PER_SECOND,
+                        movement_check=1.0/settings.MOTION_CHECKS_PER_SECOND,
                         before_movement=settings.RECORD_SECONDS_BEFORE_MOVEMENT,
                         after_movement=settings.RECORD_SECONDS_AFTER_MOVEMENT,
                         motion_threshold=settings.MOTION_DETECTION_THRESHOLD)
         c.start()
-        input("Press enter to stop detecting motion.")
+        try:
+            input("Press enter to stop detecting motion.")
+        except KeyboardInterrupt: pass
         c.stop()
