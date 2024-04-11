@@ -12,6 +12,7 @@ django-picklefield
 
 #utils
 unidecode
+pystemd
 
 # for multiprocess management
 filelock
