@@ -109,6 +109,7 @@ def setup_logging():
     
     # add queue handler to root logger for app
     root_logger.addHandler(queue_handler)
+    root_logger.setLevel(settings.LOGGING_LEVEL)
 
 def watcher_is_running() -> bool:
     lock = filelock.FileLock(settings.LOCK_FILE)

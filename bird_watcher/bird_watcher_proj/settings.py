@@ -34,6 +34,9 @@ THUMBNAIL_DIRECTORY = "thumbnails"
 
 PROJECT_NAME = 'birdwatcher'
 
+WEBAPP_HOST = env('WEBAPP_HOST', default='127.0.0.1', cast=str)
+WEBAPP_PORT = env('WEBAPP_PORT', default=8000, cast=int)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -43,8 +46,8 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', cast=str)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', env('WEBAPP_HOST', default='127.0.0.1', cast=str)]
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.8:8000', 'http://127.0.0.8', f'http://{env("WEBAPP_HOST", default="127.0.0.1", cast=str)}:{env("WEBAPP_PORT", default=8000, cast=int)}', f'http://{env("WEBAPP_HOST", cast=str)}']
+ALLOWED_HOSTS = ['127.0.0.1', WEBAPP_HOST]
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.8:8000', 'http://127.0.0.8', f'http://{WEBAPP_HOST}:{WEBAPP_PORT}', f'http://{WEBAPP_HOST}']
 
 
 # Application definition
@@ -149,7 +152,7 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGGING_LEVEL = 'WARNING'
+LOGGING_LEVEL = env('LOGGING_LEVEL', default='WARNING', cast=str)
 
 STREAM_VID_DEVICE = env('STREAM_VID_DEVICE', default='', cast=str)
 
