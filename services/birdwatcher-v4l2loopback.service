@@ -1,0 +1,12 @@
+[Unit]
+Description=Service to send video data from the /dev/video0 to the loopback devices of /dev/video100
+
+[Service]
+User=root
+WorkingDirectory=/
+ExecStart=/usr/bin/ffmpeg -hide_banner -loglevel warning -f v4l2 -i /dev/video0 -codec copy -f v4l2 /dev/video100
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

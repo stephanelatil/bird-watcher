@@ -1,5 +1,5 @@
 [Unit]
-Description=Service running the bird_watcher webapp
+Description=Service running the bird_watcher motion detector
 #comment out the lines below if not using v4l2loopback
 Requires=birdwatcher-v4l2loopback.service
 After=birdwatcher-v4l2loopback.service
@@ -8,7 +8,7 @@ After=birdwatcher-v4l2loopback.service
 User=root
 #Enter here the location of the bird_watcher directory of the bird-watcher git repo for example
 WorkingDirectory=/home/pi/bird-watcher/bird_watcher
-ExecStart=/home/pi/bird-watcher/.venv/bin/python3 -m uvicorn bird_watcher_proj.asgi:app --host 0.0.0.0
+ExecStart=/home/pi/bird-watcher/.venv/bin/python3 manage.py watch_motion
 Restart=always
 RestartSec=3
 
