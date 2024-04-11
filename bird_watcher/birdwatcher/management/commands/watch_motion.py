@@ -178,8 +178,7 @@ class CamInterface:
         if options is None:
             options = {}
         self._camera = av.open(file=settings.VID_CAMERA_DEVICE,
-                            format=settings.VID_CAMERA_FORMAT,
-                            options=options)
+                            format='v4l2', options=options)
         self._frame_generator = self._camera.decode(video=0)
         for i in range(10):
             frame = next(self._frame_generator)

@@ -91,7 +91,6 @@ These settings *must* be set as there is no default value for them. The value in
 |Key|Description|Default value|
 | --- | --- | --- |
 |VID_CAMERA_DEVICE|The device to read the camera input from. Usually in the `/dev` directory. It may not be video0 if it is a USB device with special drivers or if multiple cameras are connected|`/dev/video0`|
-|VID_CAMERA_FORMAT|The camera feed decoder library. For linux `v4l2` works well and for OSX use `avfoundation` Other values can be found on [ffmpeg's documentation](https://trac.ffmpeg.org/wiki/Capture/Webcam)|`v4l2`|
 |VID_INPUT_FORMAT|Different values are possible, usually `yuyv` and `mjpeg` are available for v4l2 webacams. `YUYV` has better image quality but a lower framerate at similar resolutions than `mjpeg` |`mjpeg`|
 |VID_OUTPUT_PXL_FORMAT|The pixel format for the video output|`yuvj422p`|
 |VID_RESOLUTION|The video resolution to be supplied by the camera. Depending on your choice of `VID_INPUT_FORMAT`, you can see available resolutions with the `ffmpeg -f v4l2 -list_formats all -i {VID_CAMERA_DEVICE}` command on linux.|`1280x720`|
