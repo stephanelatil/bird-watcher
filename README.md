@@ -91,9 +91,8 @@ These settings *must* be set as there is no default value for them. The value in
 |Key|Description|Default value|
 | --- | --- | --- |
 |VID_CAMERA_DEVICE|The device to read the camera input from. Usually in the `/dev` directory. It may not be video0 if it is a USB device with special drivers or if multiple cameras are connected|`/dev/video0`|
-|VID_INPUT_FORMAT|Different values are possible, usually `yuyv` and `mjpeg` are available for v4l2 webacams. `YUYV` has better image quality but a lower framerate at similar resolutions than `mjpeg` |`mjpeg`|
 |VID_OUTPUT_PXL_FORMAT|The pixel format for the video output|`yuvj422p`|
-|VID_RESOLUTION|The video resolution to be supplied by the camera. Depending on your choice of `VID_INPUT_FORMAT`, you can see available resolutions with the `ffmpeg -f v4l2 -list_formats all -i {VID_CAMERA_DEVICE}` command on linux.|`1280x720`|
+|VID_RESOLUTION|The video resolution to be supplied by the camera. The input format is `yuyv422`, you can see available resolutions with the `ffmpeg -f v4l2 -list_formats all -i {VID_CAMERA_DEVICE}` command on linux.|`1280x720`|
 |MOTION_CHECKS_PER_SECOND|The number of times per second to check for movement on a frame. Lower numbers have more change of missing an object that quickly enters and leaves the frame but is more sensitive because there is more variation between two check-frames|`2`|
 |MOTION_DETECTION_THRESHOLD|The percentage of the screen that should change for it to be considered as a movement event. Should be between 0 and 1, lower values increase sensitivity. A value of 0 will always detect movement and a value of 1 will detect movement only if **ALL** pixels change between two check frames| `0.07`|
 |RECORD_SECONDS_BEFORE_MOVEMENT|The number of seconds to save in the recording **before** movement was detected|`2`|

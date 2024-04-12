@@ -159,7 +159,7 @@ STREAM_VID_DEVICE = env('STREAM_VID_DEVICE', default='', cast=str)
 VID_OUTPUT_PXL_FORMAT = env("VID_OUTPUT_PXL_FORMAT", default="yuvj444p", cast=str)
 VID_CAMERA_DEVICE = env("VID_CAMERA_DEVICE", cast=str)
 VID_RESOLUTION = env("VID_RESOLUTION",default="640x400",cast=str)
-VID_INPUT_FORMAT = env("VID_INPUT_FORMAT", default="mjpeg", cast=str)
+VID_INPUT_FORMAT = 'yuyv422' #only format supported by v4l2 loopback
 VID_FORCED_FRAMERATE = env("VID_FORCED_FRAMERATE", default=-1, cast=float)
 
 MOTION_CHECKS_PER_SECOND = env("MOTION_CHECKS_PER_SECOND", default=2, cast=float)
