@@ -3,7 +3,7 @@ import numpy as np
 from threading import Thread
 from multiprocessing import Queue
 from pathlib import Path
-import av, logging
+import av, logging, atexit
 from datetime import datetime
 from collections import deque
 from django.conf import settings
@@ -335,8 +335,9 @@ class Command(BaseCommand):
                         before_movement=settings.RECORD_SECONDS_BEFORE_MOVEMENT,
                         after_movement=settings.RECORD_SECONDS_AFTER_MOVEMENT,
                         motion_threshold=settings.MOTION_DETECTION_THRESHOLD)
+        atexit.register(c.stop)
         c.start()
         try:
             input("Press enter to stop detecting motion.")
         except KeyboardInterrupt: pass
-        c.stop()
+        except EOFError: pass
