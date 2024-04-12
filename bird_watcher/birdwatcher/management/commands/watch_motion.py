@@ -59,7 +59,7 @@ class Interruptable:
             StaticThreadInterrupt.interrupt_all()
 
 class VideoWriter(Interruptable):
-    def __init__(self, filename, initial=None, codec="h264_omv", fps=30, height=1080, width=1920) -> None:
+    def __init__(self, filename, initial=None, codec="h264_omx", fps=30, height=1080, width=1920) -> None:
         #ensure assets dir exists
         Path(settings.MEDIA_ROOT).joinpath(settings.VIDEOS_DIRECTORY).mkdir(0o755, True, True)
         Path(settings.MEDIA_ROOT).joinpath(settings.THUMBNAIL_DIRECTORY).mkdir(0o755, True, True)
