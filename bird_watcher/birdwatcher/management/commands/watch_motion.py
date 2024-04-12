@@ -228,7 +228,7 @@ class CamInterface:
                 check, frame = self._camera.read()
                 if check:
                     yield cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        finally
+        finally:
             if not self._camera is None:
                 self._camera.release()
             self._camera = None
