@@ -3,7 +3,7 @@ import numpy as np
 from threading import Thread
 from multiprocessing import Queue
 from pathlib import Path
-import av, logging, atexit
+import av, logging, atexit, math
 from datetime import datetime
 from collections import deque
 from django.conf import settings
@@ -206,8 +206,8 @@ class CamInterface:
         for i in range(frame_setup_count):
             frame = self._frame_generator.__next__()
 
-        self._fps = round((perf_counter()-start)/frame_setup_count,2)
-        logger.debug(f"Read {frame_setup_count} in {(perf_counter()-start)} seconds for {self._fps} fps")
+        self._fps = int(math.ceil(frame_setup_count/(perf_counter()-start)))
+        logger.debug(f"Read {frame_setup_count} frames in {(perf_counter()-start)} seconds for {self._fps} fps")
         self._resolution = frame.shape[:2]
         logger.debug(f"CamInterface started with resolution {self._resolution} and {self._fps} FPS")
         
