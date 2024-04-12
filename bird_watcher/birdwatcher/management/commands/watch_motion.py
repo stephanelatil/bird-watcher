@@ -94,8 +94,8 @@ class VideoWriter(Interruptable):
 
         file_path = str(path.join(settings.MEDIA_ROOT, settings.VIDEOS_DIRECTORY, filename))
         stream_options = {'movflags':'+faststart', "crf":"18"}
-        container = av.open(file_path, mode="w", options=stream_options)
-        stream = container.add_stream(self._codec, rate=self._fps)
+        container = av.open(file_path, mode="w")
+        stream = container.add_stream(self._codec, rate=self._fps, options=stream_options)
         stream.height,stream.width = self._resolution
         # stream.pix_fmt = settings.VID_OUTPUT_PXL_FORMAT
         logger.debug(f"Creating video file \"{file_path}\"")
