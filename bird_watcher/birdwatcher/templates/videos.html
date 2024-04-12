@@ -9,16 +9,16 @@
 {% include "header.html" %}
     <div class="container">
         <h1 class="text-center my-5">Videos</h1>
-        {% for video in video_list %}
-        <div class="col cards">
+        <div class="card-deck cards">
+            {% for video in video_list %}
             <a class="card video-card nav-link" href="/video/{{ video.pk }}">
                 <img src="{{ video.thumbnail_url }}" class="card-img-top" alt="Broken thumbnail">
                 <div class="card-body">
                     <h5 class="card-title video-title">{{ video.date_created }}</h5>
                 </div>
             </a>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </body>
 </html>
