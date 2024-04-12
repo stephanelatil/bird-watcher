@@ -343,3 +343,4 @@ class Command(BaseCommand):
             input("Press enter to stop detecting motion.")
         except KeyboardInterrupt: pass
         except EOFError: pass
+        c._capThread.join() #ensure to wait forever or until stop
