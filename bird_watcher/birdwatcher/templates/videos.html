@@ -14,7 +14,7 @@
             <a class="card video-card nav-link" href="/video/{{ video.pk }}">
                 <img src="{{ video.thumbnail_url }}" class="card-img-top" alt="Broken thumbnail">
                 <div class="card-body">
-                    <h5 class="card-title video-title">{{ video.date_created }}</h5>
+                    <h5 class="card-title video-title text-break">{{ video.title }}</h5>
                 </div>
             </a>
             {% endfor %}
