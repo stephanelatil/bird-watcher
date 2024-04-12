@@ -59,7 +59,7 @@ class Interruptable:
             StaticThreadInterrupt.interrupt_all()
 
 class VideoWriter(Interruptable):
-    def __init__(self, filename, initial=None, codec="h264_v4l2m2m", fps=30, height=1080, width=1920) -> None:
+    def __init__(self, filename, initial=None, codec="libx264", fps=30, height=1080, width=1920) -> None:
         #ensure assets dir exists
         Path(settings.MEDIA_ROOT).joinpath(settings.VIDEOS_DIRECTORY).mkdir(0o755, True, True)
         Path(settings.MEDIA_ROOT).joinpath(settings.THUMBNAIL_DIRECTORY).mkdir(0o755, True, True)
@@ -93,11 +93,11 @@ class VideoWriter(Interruptable):
         logger.info(f"Starting video write with codec:{self._codec} and {self._fps} fps")
 
         file_path = str(path.join(settings.MEDIA_ROOT, settings.VIDEOS_DIRECTORY, filename))
-        container = av.open(file_path, mode="w")
+        stream_options = {'movflags':'+faststart', "crf":"18"}
+        container = av.open(file_path, mode="w", options=stream_options)
         stream = container.add_stream(self._codec, rate=self._fps)
         stream.height,stream.width = self._resolution
         # stream.pix_fmt = settings.VID_OUTPUT_PXL_FORMAT
-        stream.options = {'movflags':'+faststart', "crf":"18"}
         logger.debug(f"Creating video file \"{file_path}\"")
         
         vid = Video.objects.create(video_file=file_path,
