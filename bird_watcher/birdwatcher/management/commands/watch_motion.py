@@ -90,6 +90,7 @@ class VideoWriter(Interruptable):
         thumbnail = np.array(thumbnail).tobytes()
         thumbnail = io.BytesIO(thumbnail)
         logger.debug("Generating thumbnail")
+        logger.info(f"Starting video write with codec:{self._codec} and {self._fps} fps")
 
         file_path = str(path.join(settings.MEDIA_ROOT, settings.VIDEOS_DIRECTORY, filename))
         container = av.open(file_path, mode="w")
