@@ -200,12 +200,14 @@ class CamInterface:
         self._inner_gen = None
         self._start_cam()
         
+        frame = self._frame_generator.__next__()
         start = perf_counter()
         frame_setup_count = 10
         for i in range(frame_setup_count):
             frame = self._frame_generator.__next__()
 
         self._fps = round((perf_counter()-start)/frame_setup_count,2)
+        logger.debug(f"Read {frame_setup_count} in {(perf_counter()-start)} seconds for {self._fps} fps")
         self._resolution = frame.shape[:2]
         logger.debug(f"CamInterface started with resolution {self._resolution} and {self._fps} FPS")
         
@@ -340,7 +342,7 @@ class Command(BaseCommand):
         atexit.register(c.stop)
         c.start()
         try:
-            input("Press enter to stop detecting motion.")
+            input("Press enter to stop detecting motion.\n")
         except KeyboardInterrupt: pass
         except EOFError: pass
         c._capThread.join() #ensure to wait forever or until stop
