@@ -3,7 +3,7 @@ import numpy as np
 from threading import Thread
 from multiprocessing import Queue
 from pathlib import Path
-import av, os, sys, logging
+import av, logging
 from datetime import datetime
 from collections import deque
 from django.conf import settings
@@ -11,6 +11,7 @@ from django.core.management import BaseCommand
 from birdwatcher.models import Video
 from birdwatcher.utils import setup_logging
 from os import path
+from time import perf_counter
 
 logger = logging.getLogger(settings.PROJECT_NAME)
 
@@ -191,21 +192,51 @@ class CamInterface:
     def __init__(self, options=None):
         if options is None:
             options = {}
-        logger.debug(f"Starting CamInterface on {settings.VID_CAMERA_DEVICE} with options: {options}")
-        sys.stderr = open(os.devnull, "w")
-        self._camera = av.open(file=settings.VID_CAMERA_DEVICE,
-                            format='v4l2', options=options)
-        self._frame_generator = self._camera.decode(video=0)
-        for i in range(10):
+        # logger.debug(f"Starting CamInterface on {settings.VID_CAMERA_DEVICE} with options: {options}")
+        logger.debug("Starting CamInterface with CV2 v4l2")
+        self._inner_gen = None
+        self._start_cam()
+        
+        start = perf_counter()
+        frame_setup_count = 10
+        for i in range(frame_setup_count):
             frame = next(self._frame_generator)
-        self._resolution = frame.to_ndarray(format='rgb24').shape[:2]
-        self._fps = self._camera.streams.video[0].base_rate
+
+        self._fps = round((perf_counter()-start)/frame_setup_count,2)
+        self._resolution = frame.shape[:2]
         logger.debug(f"CamInterface started with resolution {self._resolution} and {self._fps} FPS")
         
     def get_next_frame(self):
-        if self._frame_generator is None:
-            return None
-        return next(self._frame_generator).to_ndarray(format='rgb24')
+        return next(self._frame_generator,None)
+    
+    def _start_cam(self):
+        self._camera = cv2.VideoCapture(settings.STREAM_VID_DEVICE, cv2.CAP_V4L2)
+        try:
+            width, height = str(settings.VID_RESOLUTION).split('x',1)
+            self._camera.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
+            self._camera.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
+        except: pass
+    
+    def _get_frame_gen(self):
+        err_count = 0
+        while err_count < 10:
+            if self._camera is None:
+                self._start_cam()
+            check, frame = self._camera.read()
+            if check:
+                yield cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            else:
+                err_count += 1
+        if not self._camera is None:
+            self._camera.release()
+        self._camera = None
+        raise StopIteration()
+    
+    @property
+    def _frame_generator(self):
+        if self._inner_gen is None:
+            self._inner_gen = self._get_frame_gen()
+        return self._inner_gen
     
     @property
     def frame_rate(self):
@@ -216,8 +247,9 @@ class CamInterface:
         return self._resolution
     
     def close(self):
-        self._frame_generator = None
-        self._camera.close()
+        if not self._camera is None:
+            self._camera.release()
+            self._camera = None
         
 class CapAndRecord(Interruptable):
     def __init__(self, movement_check=0.5, after_movement=3, before_movement=3, motion_threshold=0.07,
@@ -238,7 +270,7 @@ class CapAndRecord(Interruptable):
             logger.info("Motion Detection and Capture starting")
             motion = MotionDetector(shrink_ratio=1/20, mov_on_frame_amount=self._motion_threshold,
                                     #mov check twice a sec
-                                    mov_check_every=self._frame_movement_check)
+                                    mov_check_every=int(self._frame_movement_check))
             writer = None
             frames_without_motion = 0
             
