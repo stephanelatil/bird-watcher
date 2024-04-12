@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-from os.path import sep
 from decouple import Config, RepositoryEnv
+from zoneinfo import ZoneInfo
 
 __all__ = ['env']
 
@@ -155,6 +155,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGGING_LEVEL = env('LOGGING_LEVEL', default='WARNING', cast=str)
 
 STREAM_VID_DEVICE = env('STREAM_VID_DEVICE', default='', cast=str)
+try:
+    with open('/etc/timezone', 'r') as f:
+        LOCAL_TIMEZONE = ZoneInfo(f.read())
+except:
+    LOCAL_TIMEZONE = ZoneInfo('UTC')
 
 VID_OUTPUT_PXL_FORMAT = env("VID_OUTPUT_PXL_FORMAT", default="yuvj444p", cast=str)
 VID_CAMERA_DEVICE = env("VID_CAMERA_DEVICE", cast=str)

@@ -5,7 +5,6 @@ from multiprocessing import Queue
 from pathlib import Path
 import av, logging, atexit, math
 from datetime import datetime
-from dateutil import tz
 from collections import deque
 from django.conf import settings
 from django.core.management import BaseCommand
@@ -104,8 +103,8 @@ class VideoWriter(Interruptable):
         vid = Video.objects.create(video_file=file_path,
                                    num_frames=len(self._initial),
                                    framerate=self._fps)
-        vid_time = vid.date_created.replace(tzinfo=tz.tzutc())
-        vid.title = vid_time.astimezone(tz.tzlocal()).strftime("%A %-d %b %Y, %H:%M:%S")
+        vid_time = vid.date_created.astimezone(settings.LOCAL_TIMEZONE)
+        vid.title = vid_time.strftime("%A %-d %b %Y, %H:%M:%S")
         vid.thumbnail_file.save(str(vid.pk).rjust(7,'0')+'.webp', thumbnail)
         vid.save()
         logger.debug(f"Created video entry pk={vid.pk} and saved thumbnail")
