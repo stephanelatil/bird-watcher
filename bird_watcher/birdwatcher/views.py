@@ -10,17 +10,18 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotModified
 from django.views.generic.edit import FormMixin
 from json import loads
-from fastapi import APIRouter, Header, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import StreamingResponse, FileResponse, Response, RedirectResponse
 from multiprocessing import Condition
 from threading import Thread
 from asgiref.sync import sync_to_async
-from anyio import open_file
-import os, cv2
+import os, cv2, logging
 from typing import BinaryIO
 from starlette._compat import md5_hexdigest
 from datetime import datetime
 from time import sleep
+
+logger = logging.getLogger(settings.PROJECT_NAME)
 
 api_router = APIRouter()
 

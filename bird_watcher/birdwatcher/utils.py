@@ -13,10 +13,12 @@ motion_detect_unit.load()
 logger = logging.getLogger(settings.PROJECT_NAME)
 
 def kill_birdwatcher():
+    logger.info("Stopping motion detection service")
     motion_detect_unit.Unit.Stop(b'replace')
     
 
 def start_or_restart_birdwatcher():
+    logger.info("Restarting motion detection service")
     motion_detect_unit.Unit.Restart(b'replace')
         
 class ColoredSimpleFormatter(logging.Formatter):
@@ -87,7 +89,10 @@ def setup_logging():
     
     # add queue handler to root logger for app
     root_logger.addHandler(queue_handler)
-    root_logger.setLevel(settings.LOGGING_LEVEL)
+    root_logger.setLevel(logging.DEBUG)
+    
+    logger = logging.getLogger(settings.PROJECT_NAME)    
+    logger.info(f"Logging successfully setup with level: {logging.getLevelName(stdout_handler.level)}")
 
 def watcher_is_running() -> bool:
     return motion_detect_unit.Unit.ActiveState == b'active'
