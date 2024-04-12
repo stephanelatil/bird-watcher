@@ -11,6 +11,9 @@ WorkingDirectory=/home/pi/bird-watcher/bird_watcher
 ExecStart=/home/pi/bird-watcher/.venv/bin/python3 manage.py run_webapp
 Restart=always
 RestartSec=3
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
 
 [Install]
 WantedBy=multi-user.target

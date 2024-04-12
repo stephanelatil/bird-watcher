@@ -11,6 +11,9 @@ WorkingDirectory=/home/pi/bird-watcher/bird_watcher
 ExecStart=/home/pi/bird-watcher/.venv/bin/python3 manage.py watch_motion
 Restart=always
 RestartSec=3
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
 
 [Install]
 # commented so it is not started on boot
