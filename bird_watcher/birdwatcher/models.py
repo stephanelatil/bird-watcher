@@ -16,6 +16,7 @@ class Video(models.Model):
     framerate = models.FloatField()
     date_created = models.DateTimeField(auto_created=True, auto_now=True, editable=False)
     tags = models.ManyToManyField(Tag, related_name='videos', default=[])
+    title = models.TextField(null=False, blank=False, default="temporary_title")
     
     @property
     def thumbnail_url(self):
