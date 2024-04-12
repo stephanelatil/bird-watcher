@@ -203,14 +203,14 @@ class CamInterface:
         start = perf_counter()
         frame_setup_count = 10
         for i in range(frame_setup_count):
-            frame = next(self._frame_generator)
+            frame = self._frame_generator.__next__()
 
         self._fps = round((perf_counter()-start)/frame_setup_count,2)
         self._resolution = frame.shape[:2]
         logger.debug(f"CamInterface started with resolution {self._resolution} and {self._fps} FPS")
         
     def get_next_frame(self):
-        return next(self._frame_generator,None)
+        return self._frame_generator.__next__()
     
     def _start_cam(self):
         self._camera = cv2.VideoCapture(settings.STREAM_VID_DEVICE, cv2.CAP_V4L2)
@@ -221,19 +221,18 @@ class CamInterface:
         except: pass
     
     def _get_frame_gen(self):
-        err_count = 0
-        while err_count < 10:
-            if self._camera is None:
-                self._start_cam()
-            check, frame = self._camera.read()
-            if check:
-                yield cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            else:
-                err_count += 1
-        if not self._camera is None:
-            self._camera.release()
-        self._camera = None
-        raise StopIteration()
+        try:
+            while 1:
+                if self._camera is None:
+                    self._start_cam()
+                check, frame = self._camera.read()
+                if check:
+                    yield cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        finally
+            if not self._camera is None:
+                self._camera.release()
+            self._camera = None
+            self._inner_gen = None
     
     @property
     def _frame_generator(self):
