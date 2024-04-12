@@ -96,7 +96,7 @@ class VideoWriter(Interruptable):
         container = av.open(file_path, mode="w")
         stream = container.add_stream(self._codec, rate=self._fps)
         stream.height,stream.width = self._resolution
-        stream.pix_fmt = settings.VID_OUTPUT_PXL_FORMAT
+        # stream.pix_fmt = settings.VID_OUTPUT_PXL_FORMAT
         stream.options = {'movflags':'+faststart', "crf":"18"}
         logger.debug(f"Creating video file \"{file_path}\"")
         
@@ -296,7 +296,7 @@ class CapAndRecord(Interruptable):
                                             fps=self._cam.frame_rate,
                                             height=self._cam.resolution[0],
                                             width=self._cam.resolution[1])
-                        self._frame_ring_buffer.clear()
+                        # self._frame_ring_buffer.clear()
                     writer.write_frame(frame)
                 elif not writer is None: #otherwise close writer if open
                     logger.debug(f"No motion detected for {frames_without_motion}. Stopping writer")
