@@ -6,12 +6,16 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 echo -e '***********************\nInstalling libraries\n***********************'
-apt-get install ffmpeg libavdevice-dev libavformat-dev v4l-utils python3-dev libsystemd-dev -r
+apt update
+apt-get install ffmpeg libavdevice-dev libavformat-dev v4l-utils python3-dev libsystemd-dev -y
 
 echo -e '***********************\nSetting up venv\n***********************'
 python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install -r requirements.txt
+
+echo -e '***********************\nRemoving unused packages\n***********************'
+apt autoremove
 
 echo -e '***********************\nSetting Django Secrets\n***********************'
 cp -u .env.dev .env
