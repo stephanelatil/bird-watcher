@@ -103,7 +103,7 @@ class VideoWriter(Interruptable):
         vid = Video.objects.create(video_file=file_path,
                                    num_frames=len(self._initial),
                                    framerate=self._fps)
-        vid_time = vid.date_created.astimezone(settings.LOCAL_TIMEZONE)
+        vid_time = vid.date_created
         vid.title = vid_time.strftime("%A %-d %b %Y, %H:%M:%S")
         vid.thumbnail_file.save(str(vid.pk).rjust(7,'0')+'.webp', thumbnail)
         vid.save()
