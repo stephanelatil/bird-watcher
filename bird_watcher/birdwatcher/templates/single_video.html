@@ -4,6 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Page</title>
+    <script>
+    $("delete-video-button").click(function(e) {
+        e.preventDefault();
+        $.ajax({
+            type: "DELETE",
+            success: function(result) {
+                window.location.replace("/videos/");
+            },
+            error: function(result) {
+                alert('Error deleting file. Contact an administrator');
+            }
+        });
+    });
+    function removeTag(tag){
+    $.ajax('{{ tag_url}}', {
+        type:"DELETE",
+        data:  JSON.stringify({tag:tag}),
+        contentType: "application/json",
+        headers: {'X-CSRFToken': csrftoken},
+        mode: 'same-origin', // Do not send CSRF token to another domain.
+        success: function(response, status_text, jqXHR){
+            if (jqXHR.status == 204) {
+                const tagElement = document.getElementById(tag);
+                tagElement.remove();
+                //remove from local tagList
+                tagList = tagList.filter(function(item) {return item !== tag})
+            } else {
+                console.error('Failed to remove tag:', status_text);
+            }
+        }
+    });
+    }
+    // Function to add a tag to the list
+    function showTag(tag) {
+        const tagsContainer = document.getElementById('tagsContainer');
+
+        // Create a new tag element
+        const tagElement = document.createElement('div');
+        tagElement.id = tag;
+        tagElement.classList.add('badge', 'bg-secondary', 'me-2', 'mb-2', 'rounded-pill');
+        tagElement.textContent = tag;
+
+        // Create a close button for the tag
+        const closeButton = document.createElement('button');
+        closeButton.classList.add('btn-close', 'btn-sm');
+        closeButton.setAttribute('aria-label', 'Close');
+        closeButton.addEventListener('click', () => removeTag(tag));
+
+        // Append the tag and close button to the container
+        tagElement.appendChild(closeButton);
+        tagsContainer.appendChild(tagElement);
+    }
+
+    // Populate tags from the tag_list variable
+    var tagList = {{ tag_list | safe}}; // Replace with your actual tag list
+    tagList.forEach(tag => showTag(tag));
+    
+    $(document).ready(
+        $('#add-tags-form').submit(function(e){
+        e.preventDefault();
+        var serialized = $(this).serialize();
+        var dat = Object.fromEntries(new URLSearchParams(serialized));
+        // var dat = serialized;
+        $.ajax('{{ tag_url}}', {
+            type:"POST",
+            contentType: "application/json",
+            data:  JSON.stringify(dat),
+            headers: {'X-CSRFToken': csrftoken},
+            mode: 'same-origin', // Do not send CSRF token to another domain.
+            success: function(response, status_text, jqXHR){
+                if (jqXHR.status == 202) {
+                    if (!tagList.includes(response)){
+                        showTag(response);
+                        tagList.push(response);
+                    }
+                } else {
+                    console.error('Failed to add tag:', status_text);
+                }
+            }
+        });
+        })
+    );
+</script>
 </head>
 <script>function getCookie(name) {
     let cookieValue = null;
@@ -42,88 +125,17 @@ const csrftoken = getCookie('csrftoken');</script>
             <h2>Tags:</h2>
             <div id="tagsContainer" class="d-flex flex-wrap"></div>
         </div>
-
+            <form id="add-tags-form">
+                {% csrf_token %}
+                <ul class="edit-tags-ul">
+                    <li class="edit-tags-li">{{ form }}</li>
+                    <li class="edit-tags-li"><input type="submit" value="Add Tag" class="btn btn-primary"></li>
+                </ul>
+            </form>
+        </div>
+        <div>
+            <button, id="delete-video-button" name="delete-video-button" class="btn btn-danger">Delete</button>
         </div>
     </div>
-    <form id="add-tags-form">
-        {% csrf_token %}
-        <ul class="edit-tags-ul">
-            <li class="edit-tags-li">{{ form }}</li>
-            <li class="edit-tags-li"><input type="submit" value="Add Tag" class="btn btn-primary"></li>
-        </ul>
-    </form>
-
-        <!-- JavaScript -->
-        <script>
-                function removeTag(tag){
-                $.ajax('{{ tag_url}}', {
-                    type:"DELETE",
-                    data:  JSON.stringify({tag:tag}),
-                    contentType: "application/json",
-                    headers: {'X-CSRFToken': csrftoken},
-                    mode: 'same-origin', // Do not send CSRF token to another domain.
-                    success: function(response, status_text, jqXHR){
-                        if (jqXHR.status == 204) {
-                            const tagElement = document.getElementById(tag);
-                            tagElement.remove();
-                            //remove from local tagList
-                            tagList = tagList.filter(function(item) {return item !== tag})
-                        } else {
-                            console.error('Failed to remove tag:', status_text);
-                        }
-                    }
-                });
-                }
-                // Function to add a tag to the list
-                function showTag(tag) {
-                    const tagsContainer = document.getElementById('tagsContainer');
-
-                    // Create a new tag element
-                    const tagElement = document.createElement('div');
-                    tagElement.id = tag;
-                    tagElement.classList.add('badge', 'bg-secondary', 'me-2', 'mb-2', 'rounded-pill');
-                    tagElement.textContent = tag;
-
-                    // Create a close button for the tag
-                    const closeButton = document.createElement('button');
-                    closeButton.classList.add('btn-close', 'btn-sm');
-                    closeButton.setAttribute('aria-label', 'Close');
-                    closeButton.addEventListener('click', () => removeTag(tag));
-
-                    // Append the tag and close button to the container
-                    tagElement.appendChild(closeButton);
-                    tagsContainer.appendChild(tagElement);
-                }
-
-                // Populate tags from the tag_list variable
-                var tagList = {{ tag_list | safe}}; // Replace with your actual tag list
-                tagList.forEach(tag => showTag(tag));
-                
-                $(document).ready(
-                  $('#add-tags-form').submit(function(e){
-                    e.preventDefault();
-                    var serialized = $(this).serialize();
-                    var dat = Object.fromEntries(new URLSearchParams(serialized));
-                    // var dat = serialized;
-                    $.ajax('{{ tag_url}}', {
-                        type:"POST",
-                        contentType: "application/json",
-                        data:  JSON.stringify(dat),
-                        headers: {'X-CSRFToken': csrftoken},
-                        mode: 'same-origin', // Do not send CSRF token to another domain.
-                        success: function(response, status_text, jqXHR){
-                            if (jqXHR.status == 202) {
-                                if (!tagList.includes(response)){
-                                    showTag(response);
-                                    tagList.push(response);
-                                }
-                            } else {
-                                console.error('Failed to add tag:', status_text);
-                            }
-                        }
-                    });
-                  })
-                );
-            </script>
 </body>
 </html>

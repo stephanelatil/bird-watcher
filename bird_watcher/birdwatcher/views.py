@@ -78,6 +78,16 @@ class SingleVideoView(GlobalContextMixin, FormMixin, DetailView):
         context['tag_list'] = list(context['video'].tags.values_list('name',flat=True))
         context['tag_url'] = reverse('video-tags', args=(context['video'].pk,))
         return context
+    
+    def delete(self, request, *args, pk=None, **kwargs):
+        vid:Video = get_object_or_404(self.queryset, pk=pk)
+        try:
+            os.remove(vid.video_file)
+        except:
+            logger.exception(f"Unable to delete file vide file '{vid.video_file}'")
+        vid.thumbnail_file.delete(True)
+        vid.delete()
+        return HttpResponse('', status=status.HTTP_204_NO_CONTENT)
 
 ##################
 ###### Metadata Views
@@ -92,7 +102,7 @@ class VideoTagView(View):
         vid = get_object_or_404(self.queryset, pk=pk)
         vid.tags.add(tag)
         vid.save()
-        return HttpResponse(tag.name, status=202)
+        return HttpResponse(tag.name, status=status.HTTP_202_ACCEPTED)
     
     def delete(self, request:HttpRequest, *args, pk=None, **kwargs):
         vid:Video = get_object_or_404(self.queryset, pk=pk)
