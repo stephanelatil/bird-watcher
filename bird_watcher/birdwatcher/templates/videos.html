@@ -9,9 +9,9 @@
 {% include "header.html" %}
     <div class="container">
         <h1 class="text-center my-5">Videos</h1>
-        <div class="card-deck cards">
+        <div class="card-deck row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
             {% for video in video_list %}
-            <a class="card video-card nav-link" href="/video/{{ video.pk }}">
+            <a style="max-width:30em" class="col card mx-2 video-card nav-link" href="/video/{{ video.pk }}">
                 <img src="{{ video.thumbnail_url }}" class="card-img-top" alt="Broken thumbnail">
                 <div class="card-body">
                     <h5 class="card-title video-title text-break">{{ video.title }}</h5>
