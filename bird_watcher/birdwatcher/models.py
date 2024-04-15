@@ -15,7 +15,7 @@ class Video(models.Model):
     thumbnail_file = models.ImageField(upload_to=settings.THUMBNAIL_DIRECTORY, blank=True)
     num_frames = models.IntegerField()
     framerate = models.FloatField()
-    date_created = models.DateTimeField(auto_created=True, default=datetime.now(settings.LOCAL_TIMEZONE), editable=False)
+    date_created = models.DateTimeField(auto_created=True, auto_now=True, editable=False)
     tags = models.ManyToManyField(Tag, related_name='videos', default=[])
     title = models.TextField(null=False, blank=False, default="temporary_title")
     
