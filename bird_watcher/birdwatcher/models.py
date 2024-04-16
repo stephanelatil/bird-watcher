@@ -21,4 +21,4 @@ class Video(models.Model):
     
     @property
     def thumbnail_url(self):
-        return self.thumbnail_file.name
+        return "/"+self.thumbnail_file.name
