@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Page</title>
 </head>
-<script>function getCookie(name) {
+<script>
+//from Django doc https://docs.djangoproject.com/en/5.0/howto/csrf/#using-csrf-protection-with-ajax
+function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
@@ -51,14 +53,15 @@ const csrftoken = getCookie('csrftoken');</script>
             </form>
         </div>
         <div>
-            <button, id="delete-video-button" name="delete-video-button" class="btn btn-danger">Delete</button>
+            <button id="delete-video-button" name="delete-video-button" class="btn btn-danger">Delete</button>
         </div>
     </div>
     <script>
-    $("delete-video-button").click(function(e) {
+    $(document).ready($("#delete-video-button").click(function(e) {
         e.preventDefault();
         $.ajax({
             type: "DELETE",
+            headers: {'X-CSRFToken': csrftoken},
             success: function(result) {
                 window.location.replace("/videos/");
             },
@@ -66,7 +69,7 @@ const csrftoken = getCookie('csrftoken');</script>
                 alert('Error deleting file. Contact an administrator');
             }
         });
-    });
+    }));
     function removeTag(tag){
     $.ajax('{{ tag_url}}', {
         type:"DELETE",
