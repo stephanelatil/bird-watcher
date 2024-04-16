@@ -216,7 +216,7 @@ class LiveStreamVideo:
         while stream.unread_frames < LiveStreamVideo._max_unread_frames:
             yield await stream.get_frame()
         stream._kill_thread()
-        raise StopIteration()
+        raise StopAsyncIteration()
 
 @api_router.get('/stream/live')
 async def livestream_video():
