@@ -140,6 +140,10 @@ CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
 LOCK_FILE = 'birdwatcher.lock'
 
+# Constance
+
+CONSTANCE_IGNORE_ADMIN_VERSION_CHECK = True
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
