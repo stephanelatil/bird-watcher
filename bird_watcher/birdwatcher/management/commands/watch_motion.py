@@ -218,7 +218,7 @@ class CamInterface:
         return self._frame_generator.__next__()
     
     def _start_cam(self):
-        self._camera = cv2.VideoCapture(settings.STREAM_VID_DEVICE, cv2.CAP_V4L2)
+        self._camera = cv2.VideoCapture(settings.STREAM_VID_DEVICE)
         try:
             width, height = str(settings.VID_RESOLUTION).split('x',1)
             self._camera.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
