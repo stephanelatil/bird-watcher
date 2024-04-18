@@ -12,6 +12,7 @@ from birdwatcher.models import Video
 from birdwatcher.utils import setup_logging
 from os import path
 from time import perf_counter
+import signal
 
 logger = logging.getLogger(settings.PROJECT_NAME)
 
@@ -342,6 +343,8 @@ class Command(BaseCommand):
                         after_movement=settings.RECORD_SECONDS_AFTER_MOVEMENT,
                         motion_threshold=settings.MOTION_DETECTION_THRESHOLD)
         atexit.register(c.stop)
+        #register sigterm signal handler
+        signal.signal(signal.SIGTERM, lambda *a, **kw : c.stop())
         c.start()
         try:
             input("Press enter to stop detecting motion.\n")
