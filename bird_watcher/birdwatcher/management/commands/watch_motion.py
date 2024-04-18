@@ -151,7 +151,7 @@ class VideoWriter(Interruptable):
         self._write_thread.join()
         
 class MotionDetector:
-    def __init__(self, shrink_ratio=1/10, background_fade_rate=0.8, mov_check_every=5, mov_on_frame_amount=0.1) -> None:
+    def __init__(self, shrink_ratio=1/16, background_fade_rate=0.8, mov_check_every=5, mov_on_frame_amount=0.1) -> None:
         self._shrink_ratio = shrink_ratio
         self._background = np.zeros((0,0)) #no detected background yet
         self._background_fade_rate = background_fade_rate
@@ -183,7 +183,7 @@ class MotionDetector:
         
         diff = cv2.absdiff(self._background, frame)
         self.update_backgroud(frame)
-        _,diff = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)
+        _,diff = cv2.threshold(diff, 45, 255, cv2.THRESH_BINARY)
         num_pixels_theshold = self._mov_on_frame_amount*diff.shape[0]*diff.shape[1]
         nonZero = cv2.countNonZero(diff)
         if nonZero > num_pixels_theshold/2 and not nonZero > num_pixels_theshold:
