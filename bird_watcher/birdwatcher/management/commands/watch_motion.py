@@ -139,6 +139,7 @@ class VideoWriter(Interruptable):
             container.mux(packet)
         container.close()
         logger.debug(f"Video container written fully")
+        logger.info(f"Video {vid.title} done : written all {vid.num_frames} frames.")
     
     def write_frame(self, frame):
         self._frame_queue.put_nowait(frame)
