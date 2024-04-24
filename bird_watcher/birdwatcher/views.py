@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from birdwatcher.models import Video, Tag
-from birdwatcher.forms import TagVideoForm
-from birdwatcher.utils import start_or_restart_birdwatcher
+from birdwatcher.forms import TagVideoForm, ConstanceSettingsForm
+from birdwatcher.utils import start_or_restart_birdwatcher, kill_birdwatcher, watcher_is_running
 from django.views.generic import View, ListView, DetailView
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotModified
 from django.views.generic.edit import FormMixin
-from json import loads
+from json import loads, dumps
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import StreamingResponse, FileResponse, Response, RedirectResponse
 from multiprocessing import Condition
@@ -20,6 +20,7 @@ from typing import BinaryIO
 from starlette._compat import md5_hexdigest
 from datetime import datetime
 from time import sleep
+from asyncio import sleep as asleep
 
 logger = logging.getLogger(settings.PROJECT_NAME)
 
@@ -63,6 +64,19 @@ class LiveStreamView(GlobalContextMixin, View):
     def get(self, request, *args, **kwargs):
         context = {}
         return render(request, self.template_name, context)
+
+class ConfigView(GlobalContextMixin, FormMixin, View):
+    template_name = 'config.html'
+    url_name = 'config'
+    form_class = ConstanceSettingsForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["watcher_running"] = watcher_is_running()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context_data())
     
 class SingleVideoView(GlobalContextMixin, FormMixin, DetailView):
     model = Video
@@ -323,6 +337,34 @@ async def get_favicon():
     # Step 6: Return the favicon.ico file using FileResponse
     return FileResponse("static/favicon.ico")
 
-@api_router.put("/birdwatcher/restart")
+@api_router.put("/birdwatcher/motion")
 async def restart_watcher():
-    start_or_restart_birdwatcher()
+    try:
+        start_or_restart_birdwatcher()
+        for i in range(30): #wait max 3 sec for start
+            if watcher_is_running(): #wait for it to be killed
+                break
+            await asleep(0.1)
+        else:
+            return Response(dumps({"error": "Unable to start service!"}), status_code=500,media_type="application/json")
+    except Exception as e:
+        return Response(dumps({'error':str(e)}), status_code=500,media_type="application/json")
+    return Response('', status_code=204)
+
+@api_router.delete("/birdwatcher/motion")
+async def stop_watcher():
+    try:
+        kill_birdwatcher()
+        for i in range(30): #wait max 3 sec for start
+            if not watcher_is_running(): #wait for it to be killed
+                break
+            await asleep(0.1)
+        else:
+            return Response(dumps({"error": "Unable to stop service!"}), status_code=500,media_type="application/json")
+    except Exception as e:
+        return Response(dumps({'error':e}), status_code=500,media_type="application/json")
+    return Response('', status_code=204)
+    
+@api_router.get("/birdwatcher/motion")
+async def get_watcher_state():
+    return Response("true" if watcher_is_running() else "false", status_code=200)

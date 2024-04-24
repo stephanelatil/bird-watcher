@@ -17,10 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path
 from django.views.generic.base import RedirectView
-from birdwatcher.views import ThumbnailView, VideoListView, LiveStreamView, SingleVideoView, VideoTagView
+from birdwatcher.views import VideoListView, LiveStreamView, SingleVideoView, VideoTagView, ConfigView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    re_path('config/?', ConfigView.as_view(), name=ConfigView.url_name),
     re_path('videos/?', VideoListView.as_view(), name=VideoListView.url_name),
     path('video/<int:pk>/tag', VideoTagView.as_view(), name=VideoTagView.url_name),
     path('video/<int:pk>', SingleVideoView.as_view(), name='video-detail'),

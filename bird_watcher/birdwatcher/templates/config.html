@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "js_tags.html" %}
+    <title>Settings</title>
+    {% include "header.html" %}
+</head>
+<body>
+    <div class="container justify-content-center">
+        {{ form }}
+    </div>
+    <div class="container justify-content-center">
+    <div class="container mt-5">
+        <!-- <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="toggleBirdWatcher" checked="{{ watcher_running | lower }}"">
+            <label class="form-check-label" for="toggleBirdWatcher">Motion detection camera</label>
+            <div class="spinner-border text-primary d-none" role="status" id="loadingSpinner">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div> -->
+        <span><br></span>
+        <div id="toggleBirdWatcher">
+            <input type="radio" class="btn-check" name="options-outlined" id="toggleBirdWatcherOn" autocomplete="off" {% if watcher_running %}checked{% endif %}>
+            <label class="btn btn-outline-success" for="toggleBirdWatcherOn">Motion Detection On</label>
+            <input type="radio" class="btn-check" name="options-outlined" id="toggleBirdWatcherOff" autocomplete="off" {% if not watcher_running %}checked{% endif %}>
+            <label class="btn btn-outline-danger" for="toggleBirdWatcherOff">Motion Detection Off</label>
+            <div class="spinner-border spinner-border-sm text-primary d-none" role="status" id="loadingSpinner">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Motion Detection Camera</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="error-toast-body"></div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+          $('#toggleBirdWatcherOn').change(function() {
+            var isChecked = $(this).prop('checked');
+            // Show loading spinner and disable toggle toggle while ajax is running
+            $('#loadingSpinner').removeClass('d-none');
+            $('#toggleBirdWatcher').prop('disabled', true);
+            
+            // Send AJAX request
+            $.ajax({
+              type: isChecked ? 'PUT' : 'DELETE',
+              url: '/birdwatcher/motion',
+              success: function(response) {
+                // Hide loading spinner
+                $('#loadingSpinner').addClass('d-none');
+                // Re-enable toggle button
+                $('#toggleBirdWatcher').prop('disabled', false);
+                
+                // Show success message
+                showToast('Action successful!');
+              },
+              error: function(xhr, status, textStatus, errorthrown) {
+                // Hide loading spinner
+                $('#loadingSpinner').addClass('d-none');
+                
+                // Re-enable toggle button
+                $('#toggleBirdWatcher').prop('disabled', false);
+                
+                // Return toggle to previous state
+                if (isChecked){
+                    document.getElementById('toggleBirdWatcherOff').checked = true;
+                }else{
+                    document.getElementById('toggleBirdWatcherOn').checked = true;
+                }
+                
+                // Show error message
+                showToast('Error: ' + xhr.responseJSON.error);
+              }
+            });
+          });
+        });
+          
+        // Function to display toast message
+        function showToast(message) {
+            var toastElement = document.getElementById('errorToast');
+            var toastBody = document.getElementById('error-toast-body');
+            toastBody.textContent = message;
+            var toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        }
+        </script>        
+</body>
+</html>

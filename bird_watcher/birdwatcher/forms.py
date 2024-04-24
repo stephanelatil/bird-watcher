@@ -1,3 +1,4 @@
+from constance.forms import ConstanceForm
 from birdwatcher.models import Tag, Video
 from django import forms
 
@@ -15,3 +16,6 @@ class TagVideoForm(forms.ModelForm):
         self.fields['tag'].widget.attrs['class'] = "form-select"
     
     tag = ShowNameModelChoiceField(Tag.objects.all(), label="")
+    
+class ConstanceSettingsForm(ConstanceForm):
+    pass
