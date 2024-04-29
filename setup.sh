@@ -35,11 +35,11 @@ echo 'v4l2loopback' | sudo tee -a /etc/modules
 echo 'options v4l2loopback devices=1 video_nr=100 card_label="Birds"' | sudo tee '/etc/modprobe.d/v4l2loopback.conf'
 
 echo '***********************\nAdding Services\n***********************'
-sudo cat services/birdwatcher-v4l2loopback.service > /etc/systemd/system/birdwatcher-v4l2loopback.service
-sudo sed "s:^WorkingDirectory=.*:WorkingDirectory=`pwd`/bird_watcher/:g" services/birdwatcher-webapp.service > /etc/systemd/system/birdwatcher-webapp.service
-sudo sed -i "s:^ExecStart=.*:ExecStart=`pwd`/.venv/bin/python3 manage.py run_webapp:g" /etc/systemd/system/birdwatcher-webapp.service
-sudo sed "s:^WorkingDirectory=.*:WorkingDirectory=`pwd`/bird_watcher/:g" services/birdwatcher-motion-detection.service > /etc/systemd/system/birdwatcher-motion-detection.service
-sudo sed -i "s:^ExecStart=.*:ExecStart=`pwd`/.venv/bin/python3 manage.py watch_motion:g" /etc/systemd/system/birdwatcher-motion-detection.service
+sudo sh -c 'cat services/birdwatcher-v4l2loopback.service > /etc/systemd/system/birdwatcher-v4l2loopback.service'
+sudo sh -c 'sed "s:^WorkingDirectory=.*:WorkingDirectory=`pwd`/bird_watcher/:g" services/birdwatcher-webapp.service > /etc/systemd/system/birdwatcher-webapp.service'
+sudo sh -c 'sed -i "s:^ExecStart=.*:ExecStart=`pwd`/.venv/bin/python3 manage.py run_webapp:g" /etc/systemd/system/birdwatcher-webapp.service'
+sudo sh -c 'sed "s:^WorkingDirectory=.*:WorkingDirectory=`pwd`/bird_watcher/:g" services/birdwatcher-motion-detection.service > /etc/systemd/system/birdwatcher-motion-detection.service'
+sudo sh -c 'sed -i "s:^ExecStart=.*:ExecStart=`pwd`/.venv/bin/python3 manage.py watch_motion:g" /etc/systemd/system/birdwatcher-motion-detection.service'
 sudo systemctl daemon-reload
 
 echo '***********************\nStarting And Enabling Services\n***********************'
