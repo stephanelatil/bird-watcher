@@ -1,13 +1,13 @@
-#!bin/bash
+#!/bin/bash
 
-if [ "$(id -u)" != "0" ]; then
-   echo "This script must be run as root" 1>&2
-   exit 1
-fi
+# if [ "$(id -u)" != "0" ]; then
+#    echo "This script must be run as root" 1>&2
+#    exit 1
+# fi
 
 echo '***********************\nInstalling libraries\n***********************'
-apt update
-apt-get install ffmpeg libavdevice-dev libavformat-dev v4l-utils python3-dev libsystemd-dev -y
+sudo apt update
+sudo apt-get install ffmpeg libavdevice-dev libavformat-dev v4l-utils python3-dev libsystemd-dev -y
 
 echo '***********************\nSetting up venv\n***********************'
 python3 -m venv .venv
@@ -15,7 +15,7 @@ python3 -m venv .venv
 python3 -m pip install -r requirements.txt
 
 echo '***********************\nRemoving unused packages\n***********************'
-apt autoremove
+sudo apt autoremove
 
 echo '***********************\nSetting Django Secrets\n***********************'
 cp -u .env.dev .env
@@ -35,19 +35,19 @@ echo 'v4l2loopback' | sudo tee -a /etc/modules
 echo 'options v4l2loopback devices=1 video_nr=100 card_label="Birds"' | sudo tee '/etc/modprobe.d/v4l2loopback.conf'
 
 echo '***********************\nAdding Services\n***********************'
-cat services/birdwatcher-v4l2loopback.service > /etc/systemd/system/birdwatcher-v4l2loopback.service
-sed "s:^WorkingDirectory=.*:WorkingDirectory=`pwd`/bird_watcher/:g" services/birdwatcher-webapp.service > /etc/systemd/system/birdwatcher-webapp.service
-sed -i "s:^ExecStart=.*:ExecStart=`pwd`/.venv/bin/python3 manage.py run_webapp:g" /etc/systemd/system/birdwatcher-webapp.service
-sed "s:^WorkingDirectory=.*:WorkingDirectory=`pwd`/bird_watcher/:g" services/birdwatcher-motion-detection.service > /etc/systemd/system/birdwatcher-motion-detection.service
-sed -i "s:^ExecStart=.*:ExecStart=`pwd`/.venv/bin/python3 manage.py watch_motion:g" /etc/systemd/system/birdwatcher-motion-detection.service
-systemctl daemon-reload
+sudo cat services/birdwatcher-v4l2loopback.service > /etc/systemd/system/birdwatcher-v4l2loopback.service
+sudo sed "s:^WorkingDirectory=.*:WorkingDirectory=`pwd`/bird_watcher/:g" services/birdwatcher-webapp.service > /etc/systemd/system/birdwatcher-webapp.service
+sudo sed -i "s:^ExecStart=.*:ExecStart=`pwd`/.venv/bin/python3 manage.py run_webapp:g" /etc/systemd/system/birdwatcher-webapp.service
+sudo sed "s:^WorkingDirectory=.*:WorkingDirectory=`pwd`/bird_watcher/:g" services/birdwatcher-motion-detection.service > /etc/systemd/system/birdwatcher-motion-detection.service
+sudo sed -i "s:^ExecStart=.*:ExecStart=`pwd`/.venv/bin/python3 manage.py watch_motion:g" /etc/systemd/system/birdwatcher-motion-detection.service
+sudo systemctl daemon-reload
 
 echo '***********************\nStarting And Enabling Services\n***********************'
 # Prompt the user to enable services on reboot
 read -n1 -p "Would you like to enable the services on reboot? (y/n): " answer
 echo ''
 if [[ "$answer" =~ ^[Yy]$ ]]; then
-    systemctl enable birdwatcher-v4l2loopback.service
-    systemctl enable birdwatcher-webapp.service
+    sudo systemctl enable birdwatcher-v4l2loopback.service
+    sudo systemctl enable birdwatcher-webapp.service
     echo "Services enabled on reboot."
 fi
