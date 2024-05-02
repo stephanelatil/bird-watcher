@@ -1,7 +1,8 @@
 from constance.forms import ConstanceForm
-from constance.models import Constance
 from constance import config
 from django.conf import settings
+from django.forms.fields import Field
+from django.forms.widgets import Textarea, TextInput
 from birdwatcher.models import Tag, Video
 from django import forms
 
@@ -26,3 +27,6 @@ class ConstanceSettingsForm(ConstanceForm):
         for key in settings.CONSTANCE_CONFIG.keys():
             initial[key] = getattr(config, key, None)
         super().__init__(initial, request=None, *args, **kwargs)
+        for field in self.fields.values():
+            if isinstance(field, Field) and isinstance(field.widget, Textarea):
+                field.widget = TextInput(field.widget.attrs)
