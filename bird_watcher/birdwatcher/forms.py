@@ -1,4 +1,7 @@
 from constance.forms import ConstanceForm
+from constance.models import Constance
+from constance import config
+from django.conf import settings
 from birdwatcher.models import Tag, Video
 from django import forms
 
@@ -18,4 +21,8 @@ class TagVideoForm(forms.ModelForm):
     tag = ShowNameModelChoiceField(Tag.objects.all(), label="")
     
 class ConstanceSettingsForm(ConstanceForm):
-    pass
+    def __init__(self, initial, request=None, *args, **kwargs):
+        initial = initial or {}
+        for key in settings.CONSTANCE_CONFIG.keys():
+            initial[key] = getattr(settings.config, key, None)
+        super().__init__(initial, request=None, *args, **kwargs)
