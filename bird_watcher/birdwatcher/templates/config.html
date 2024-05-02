@@ -44,6 +44,8 @@
             // Show loading spinner and disable toggle toggle while ajax is running
             $('#loadingSpinner').removeClass('d-none');
             $('#toggleBirdWatcher').prop('disabled', true);
+            $('#toggleBirdWatcherOn').prop('disabled', true);
+            $('#toggleBirdWatcherOff').prop('disabled', true);
             
             // Send AJAX request
             $.ajax({
@@ -54,6 +56,8 @@
                 $('#loadingSpinner').addClass('d-none');
                 // Re-enable toggle button
                 $('#toggleBirdWatcher').prop('disabled', false);
+                $('#toggleBirdWatcherOn').prop('disabled', false);
+                $('#toggleBirdWatcherOff').prop('disabled', false);
                 
                 // Show success message
                 showToast('Action successful!');
@@ -64,6 +68,8 @@
                 
                 // Re-enable toggle button
                 $('#toggleBirdWatcher').prop('disabled', false);
+                $('#toggleBirdWatcherOn').prop('disabled', false);
+                $('#toggleBirdWatcherOff').prop('disabled', false);
                 
                 // Return toggle to previous state
                 if (isChecked){
