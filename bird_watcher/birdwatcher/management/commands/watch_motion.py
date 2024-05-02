@@ -7,6 +7,7 @@ import av, logging, atexit, math
 from datetime import datetime
 from collections import deque
 from django.conf import settings
+from constance import config
 from django.core.management import BaseCommand
 from birdwatcher.models import Video
 from birdwatcher.utils import setup_logging
@@ -221,7 +222,7 @@ class CamInterface:
     def _start_cam(self):
         self._camera = cv2.VideoCapture(settings.VID_CAMERA_DEVICE, cv2.CAP_V4L2)
         try:
-            width, height = str(settings.VID_RESOLUTION).split('x',1)
+            width, height = str(config.VID_RESOLUTION).split('x',1)
             self._camera.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
             self._camera.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
         except: pass
@@ -334,15 +335,15 @@ class Command(BaseCommand):
         setup_logging()
         
         cam_options = {}
-        if settings.VID_FORCED_FRAMERATE > 0:
-            cam_options['r'] = str(settings.VID_FORCED_FRAMERATE)
+        if config.VID_FORCED_FRAMERATE > 0:
+            cam_options['r'] = str(config.VID_FORCED_FRAMERATE)
         
         c = CapAndRecord(cam_options={"input_format":settings.VID_INPUT_FORMAT,
-                                    "videosize":settings.VID_RESOLUTION, **cam_options},
-                        movement_check=1.0/settings.MOTION_CHECKS_PER_SECOND,
-                        before_movement=settings.RECORD_SECONDS_BEFORE_MOVEMENT,
-                        after_movement=settings.RECORD_SECONDS_AFTER_MOVEMENT,
-                        motion_threshold=settings.MOTION_DETECTION_THRESHOLD)
+                                    "videosize":config.VID_RESOLUTION, **cam_options},
+                        movement_check=1.0/config.MOTION_CHECKS_PER_SECOND,
+                        before_movement=config.RECORD_SECONDS_BEFORE_MOVEMENT,
+                        after_movement=config.RECORD_SECONDS_AFTER_MOVEMENT,
+                        motion_threshold=config.MOTION_DETECTION_THRESHOLD)
         atexit.register(c.stop)
         #register sigterm signal handler
         signal.signal(signal.SIGTERM, lambda *a, **kw : c.stop())
