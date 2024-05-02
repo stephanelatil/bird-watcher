@@ -24,5 +24,5 @@ class ConstanceSettingsForm(ConstanceForm):
     def __init__(self, initial, request=None, *args, **kwargs):
         initial = initial or {}
         for key in settings.CONSTANCE_CONFIG.keys():
-            initial[key] = getattr(settings.config, key, None)
+            initial[key] = getattr(config, key, None)
         super().__init__(initial, request=None, *args, **kwargs)
