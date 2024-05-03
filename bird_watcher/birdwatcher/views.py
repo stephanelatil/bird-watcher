@@ -102,6 +102,18 @@ class SingleVideoView(GlobalContextMixin, FormMixin, DetailView):
         vid.thumbnail_file.delete(True)
         vid.delete()
         return HttpResponse('', status=status.HTTP_204_NO_CONTENT)
+    
+    def patch(self, request, *args, pk=None, **kwargs):
+        data = loads(request.body)
+        instance:Video = get_object_or_404(self.queryset, pk=pk)
+        if len(data.get('title', '').strip()) > 0:
+            instance.title = data['title']
+            instance.save()
+            return HttpResponse(status=status.HTTP_200_OK)
+        return HttpResponse(dumps({'error':f'"title" field is empty, blank or not found in request data', 
+                                   'content':data}),
+                            status=status.HTTP_400_BAD_REQUEST,
+                            content_type='application/json')
 
 ##################
 ###### Metadata Views
