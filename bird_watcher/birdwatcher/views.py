@@ -128,15 +128,6 @@ class VideoTagView(View):
         vid.tags.remove(tag)
         return HttpResponse('', status=204)
 
-# Create your views here.
-class ThumbnailView(View):
-    url_name = 'get-thumbnail'
-    queryset = Video.objects.all()
-    
-    def get(self, request, pk=None):
-        video = get_object_or_404(self.queryset, pk=pk)
-        image = video.thumbnail_file.open('rb')
-        return HttpResponse(image, content_type='image/webp')
     
 ##################
 #### Streaming views
