@@ -41,13 +41,14 @@ const csrftoken = getCookie('csrftoken');</script>
             </div>
 
             <!-- Edit Title Form (Initially Hidden) -->
-            <div id="editTitleForm" style="display: none;">
+            <div id="editTitleForm" class="col-md-8 video-title" style="display: none;">
                 <form id="titleForm">
-                    <div class="form-group">
-                        <label for="newTitle">New Title:</label>
-                        <input type="text" class="form-control" id="newTitle" value="{{ video.title | escape }}" required>
+                    <div class="input-group mb-3">
+                        <input type="text" placeholder="New Title" aria-label="New Title" aria-describedby="basic-addon2" class="form-control" id="newTitle" required>
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-outline-secondary">Submit</button>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
             </div>
         </div>
@@ -111,7 +112,7 @@ const csrftoken = getCookie('csrftoken');</script>
                     $('#divTitleBlock').show();
                     $('#editTitleForm').hide(); // Hide edit form
                     console.error('Failed to add tag:',xhr.responseText+'\n'+status+'\n'+error);
-                    showToast(status_text);
+                    showToast(status);
                 },
             });
         });
