@@ -124,11 +124,12 @@ class VideoTagView(View):
      
     def post(self, request:HttpRequest, *args, pk=None, **kwargs):
         post = loads(request.body)
-        tag = get_object_or_404(Tag.objects.all(), pk=post.get('tag'))
+        tag,_ = Tag.objects.get_or_create(name=post.get('tag'))
+        # tag = get_object_or_404(Tag.objects.all(), pk=post.get('tag'))
         vid = get_object_or_404(self.queryset, pk=pk)
         vid.tags.add(tag)
         vid.save()
-        return HttpResponse(tag.name, status=status.HTTP_202_ACCEPTED)
+        return HttpResponse(tag.name, status=status.HTTP_200_OK)
     
     def delete(self, request:HttpRequest, *args, pk=None, **kwargs):
         vid:Video = get_object_or_404(self.queryset, pk=pk)
@@ -139,7 +140,6 @@ class VideoTagView(View):
         tag = tag.first()
         vid.tags.remove(tag)
         return HttpResponse('', status=204)
-
     
 ##################
 #### Streaming views

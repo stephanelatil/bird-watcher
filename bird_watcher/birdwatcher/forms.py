@@ -7,6 +7,11 @@ from birdwatcher.models import Tag, Video
 from django import forms
 
 class ShowNameModelChoiceField(forms.ModelChoiceField):
+    def __init__(self, queryset, *, id=None, **kwargs) -> None:
+        super().__init__(queryset, **kwargs)
+        if not id is None:
+            self.widget.attrs['id'] = id
+        
     def label_from_instance(self, obj:Tag):
         return obj.name
     
@@ -19,7 +24,7 @@ class TagVideoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['tag'].widget.attrs['class'] = "form-select"
     
-    tag = ShowNameModelChoiceField(Tag.objects.all(), label="")
+    tag = ShowNameModelChoiceField(Tag.objects.all(), id="add-tag-select", label="")
     
 class ConstanceSettingsForm(ConstanceForm):
     def __init__(self, initial, request=None, *args, **kwargs):
