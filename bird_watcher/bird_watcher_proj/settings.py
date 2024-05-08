@@ -185,4 +185,9 @@ CONSTANCE_CONFIG = {
     "MOTION_DETECTION_THRESHOLD" : (MOTION_DETECTION_THRESHOLD, "", float),
     "RECORD_SECONDS_BEFORE_MOVEMENT" : (RECORD_SECONDS_BEFORE_MOVEMENT, "", float),
     "RECORD_SECONDS_AFTER_MOVEMENT" : (RECORD_SECONDS_AFTER_MOVEMENT, "", float),
+    
+    "MOTION_DETECT_AREA_TL_X" : (0.0, "X coordinate of the top left corner of the area to monitor for movement", float),
+    "MOTION_DETECT_AREA_TL_Y" : (0.0, "Y coordinate of the top left corner of the area to monitor for movement", float),
+    "MOTION_DETECT_AREA_BR_X" : (100.0, "X coordinate of the bottom right corner of the area to monitor for movement", float),
+    "MOTION_DETECT_AREA_BR_Y" : (100.0, "Y coordinate of the bottom right corner of the area to monitor for movement", float),
 }
