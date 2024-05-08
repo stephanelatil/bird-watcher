@@ -72,11 +72,12 @@ class ConfigView(GlobalContextMixin, FormMixin, View):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['form'] = ConfigView.form_class(None)
         context["watcher_running"] = watcher_is_running()
         return context
 
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context_data())
+        return render(request, self.template_name, self.get_context_data(**kwargs))
     
 class SingleVideoView(GlobalContextMixin, FormMixin, DetailView):
     model = Video
