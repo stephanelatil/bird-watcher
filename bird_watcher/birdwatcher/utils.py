@@ -95,4 +95,7 @@ def setup_logging():
     logger.info(f"Logging successfully setup with level: {logging.getLevelName(stdout_handler.level)}")
 
 def watcher_is_running() -> bool:
-    return motion_detect_unit.Unit.ActiveState == b'active'
+    try:
+        return motion_detect_unit.Unit.ActiveState == b'active'
+    except:
+        return False
