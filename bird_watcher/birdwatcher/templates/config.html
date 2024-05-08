@@ -6,17 +6,20 @@
 </head>
 <body>
     <div class="container justify-content-center">
-        {{ form }}
-    </div>
-    <div class="container justify-content-center">
-    <div class="container mt-5">
-        <!-- <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="toggleBirdWatcher" checked="{{ watcher_running | lower }}"">
-            <label class="form-check-label" for="toggleBirdWatcher">Motion detection camera</label>
-            <div class="spinner-border text-primary d-none" role="status" id="loadingSpinner">
-                <span class="visually-hidden">Loading...</span>
+        <form id="configForm">
+            {{ form.as_ul }}
+            <div class="image-container">
+                <img class="noselect" id="selected-image" draggable="false" src="/stream/single">
+                <div id="selection-rectangle"></div>
             </div>
-        </div> -->
+            <input type="hidden" name="x" id="x">
+            <input type="hidden" name="y" id="y">
+            <input type="hidden" name="width" id="width">
+            <input type="hidden" name="height" id="height">
+            <input type="submit" class="btn btn-primary" id="submitSettingsButton" value="Save Settings">
+        </form>
+    </div>
+    <div class="container mt-5">
         <span><br></span>
         <div id="toggleBirdWatcher">
             <input type="radio" class="btn-check" name="options-outlined" id="toggleBirdWatcherOn" autocomplete="off" {% if watcher_running %}checked{% endif %}>
@@ -93,6 +96,64 @@
             var toast = new bootstrap.Toast(toastElement);
             toast.show();
         }
+        
+        $(document).ready(function() {
+            var image = $('#selected-image');
+            var imageOffset = image.offset();
+            var isSelecting = false;
+            var startX, startY;
+
+            $('#selection-rectangle').css({
+                    left: imageOffset.left + {{ box_tl_x }}*image.width()/100.0,
+                    top: imageOffset.top + {{ box_tl_y }}*image.height()/100.0,
+                    width: {{ box_width }}*image.width()/100.0,
+                    height: {{ box_height }}*image.height()/100.0,
+                    display: 'block'
+                });
+
+            image.mousedown(function(e) {
+                isSelecting = true;
+                startX = e.pageX;// - imageOffset.left;
+                startY = e.pageY;// - imageOffset.top;
+
+                $('#selection-rectangle').css({
+                    left: startX,
+                    top: startY,
+                    width: 0,
+                    height: 0,
+                    display: 'block'
+                });
+            });
+
+            $(document).mousemove(function(e) {
+                if (!isSelecting) return;
+
+                var width = e.pageX - startX;
+                var height = e.pageY - startY;
+
+                $('#selection-rectangle').css({
+                    width: width,
+                    height: height
+                });
+            });
+
+            $(document).mouseup(function() {
+                isSelecting = false;
+                $('#x').val(startX- imageOffset.left);
+                $('#y').val(startY- imageOffset.top);
+                $('#width').val($('#selection-rectangle').width());
+                $('#height').val($('#selection-rectangle').height());
+            });
+
+            $('#configForm').submit(function(e) {
+                e.preventDefault();
+                // Here you can use AJAX to send the form data via POST to the current URL
+                // Example:
+                // $.post(window.location.href, $(this).serialize(), function(response) {
+                //     console.log(response);
+                // });
+            });
+        });
         </script>        
 </body>
 </html>

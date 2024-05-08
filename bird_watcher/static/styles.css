@@ -75,3 +75,31 @@ a.nav-link:active
     max-height: 100vh;
     margin: auto;
 }
+
+img.noselect{
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/*Selection boxes for selection on an image*/
+.half-size-image-container {
+    position: relative;
+    width: 55%;
+    max-width: 600px;
+}
+
+#selected-image {
+    max-width: 100% !important;
+    min-width: 60% !important;
+    height: auto;
+    width: 36em;
+}
+
+#selection-rectangle {
+    position: absolute;
+    border: 3px dashed rgba(255, 0, 0, 0.8); /* semi-transparent red dashed border */
+    background-color: rgba(255, 0, 0, 0.2);
+    pointer-events: none; /* allow mouse events to pass through */
+}

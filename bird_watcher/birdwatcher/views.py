@@ -7,6 +7,7 @@ from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.conf import settings
+from constance import config
 from django.http import HttpResponse, HttpResponseNotModified
 from django.views.generic.edit import FormMixin
 from json import loads, dumps
@@ -73,6 +74,10 @@ class ConfigView(GlobalContextMixin, FormMixin, View):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = ConfigView.form_class(None)
+        context['box_tl_x'] = config.MOTION_DETECT_AREA_TL_X
+        context['box_tl_y'] = config.MOTION_DETECT_AREA_TL_Y
+        context['box_width'] = config.MOTION_DETECT_AREA_BR_X-config.MOTION_DETECT_AREA_TL_X
+        context['box_height'] = config.MOTION_DETECT_AREA_BR_Y-config.MOTION_DETECT_AREA_TL_Y
         context["watcher_running"] = watcher_is_running()
         return context
 
@@ -182,7 +187,7 @@ class LiveStreamVideo:
             vid = None
             vid = cv2.VideoCapture(settings.STREAM_VID_DEVICE, cv2.CAP_V4L2)
             try:
-                width, height = str(settings.VID_RESOLUTION).split('x',1)
+                width, height = str(config.VID_RESOLUTION).split('x',1)
                 vid.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
                 vid.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
             except: pass
@@ -235,6 +240,10 @@ class LiveStreamVideo:
             yield await stream.get_frame()
         stream._kill_thread()
         raise StopAsyncIteration()
+    
+@api_router.get('/stream/single')
+def get_current_camera_view(request:Request):
+    return RedirectResponse('/static/no-stream.jpg')
 
 @api_router.get('/stream/live')
 async def livestream_video():
