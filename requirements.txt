@@ -13,6 +13,7 @@ django-picklefield
 #utils
 unidecode
 pystemd
+pika
 
 #video management
 Pillow
