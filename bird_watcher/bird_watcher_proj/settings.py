@@ -170,6 +170,7 @@ VID_CAMERA_DEVICE = env("VID_CAMERA_DEVICE", cast=str)
 VID_RESOLUTION = env("VID_RESOLUTION",default="640x400",cast=str)
 VID_INPUT_FORMAT = 'yuyv422' #only format supported by v4l2 loopback
 VID_FORCED_FRAMERATE = env("VID_FORCED_FRAMERATE", default=-1, cast=float)
+DEVICE_DUPLICATION = env("DEVICE_DUPLICATION", default='none', cast=str)
 
 MOTION_CHECKS_PER_SECOND = env("MOTION_CHECKS_PER_SECOND", default=2, cast=float)
 MOTION_DETECTION_THRESHOLD = env("MOTION_DETECTION_THRESHOLD", default=0.07, cast=float)
