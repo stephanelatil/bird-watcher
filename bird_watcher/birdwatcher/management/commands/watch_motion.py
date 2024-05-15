@@ -206,12 +206,18 @@ class CamInterface:
         self._start_cam()
         
         frame = self._frame_generator.__next__()
+        # get fps
         start = perf_counter()
         frame_setup_count = 10
         for i in range(frame_setup_count):
             frame = self._frame_generator.__next__()
-
         self._fps = int(math.ceil(frame_setup_count/(perf_counter()-start)))
+        
+        #write a frame to static files for the config
+        cv2.imwrite(str(path.join(settings.STATICFILES_DIRS, "single_frame.webp")),
+                    cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
+                    [cv2.IMWRITE_WEBP_QUALITY, 95])
+
         logger.debug(f"Read {frame_setup_count} frames in {(perf_counter()-start)} seconds for {self._fps} fps")
         self._resolution = frame.shape[:2]
         logger.debug(f"CamInterface started with resolution {self._resolution} and {self._fps} FPS")
