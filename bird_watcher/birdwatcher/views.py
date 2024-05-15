@@ -84,6 +84,21 @@ class ConfigView(GlobalContextMixin, FormMixin, View):
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context_data(**kwargs))
     
+    def post(self, request:HttpRequest, *args, **kwargs):
+        data:dict = loads(request.body)
+        keys_updated = []
+        for key, value in data.items():
+            #invalid key or 
+            if not hasattr(config, key) or getattr(config, key) == value:
+                continue
+            #config changed:
+            setattr(config, key, value)
+            keys_updated.append(key)
+        if len(keys_updated) > 0 and watcher_is_running():
+            start_or_restart_birdwatcher()
+        return HttpResponse(dumps({'message':'OK', 'keys_updated':keys_updated}),
+                            status=status.HTTP_200_OK+2*(len(keys_updated) > 0))
+
 class SingleVideoView(GlobalContextMixin, FormMixin, DetailView):
     model = Video
     queryset = Video.objects.all()
@@ -243,7 +258,7 @@ class LiveStreamVideo:
     
 @api_router.get('/stream/single')
 def get_current_camera_view(request:Request):
-    if os.path.exists(os.path.join(settings.STATICFILES_DIRS, 'single_frame.webp')):
+    if os.path.exists(os.path.join(settings.STATICFILES_DIRS[0], 'single_frame.webp')):
         return RedirectResponse('/static/single_frame.webp', status.HTTP_308_PERMANENT_REDIRECT)
     return RedirectResponse('/static/no-stream.jpg')
 
