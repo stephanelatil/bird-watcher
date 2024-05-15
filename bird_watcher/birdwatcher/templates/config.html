@@ -4,6 +4,24 @@
     <title>Settings</title>
     {% include "header.html" %}
 </head>
+<script>
+//from Django doc https://docs.djangoproject.com/en/5.0/howto/csrf/#using-csrf-protection-with-ajax
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');</script>
 <body>
     <div class="container justify-content-center">
         <form id="configForm">
@@ -144,22 +162,27 @@
 
             $(document).mouseup(function(e) {
                 isSelecting = false;
-                $('#id_MOTION_DETECT_AREA_TL_X').val(((tl_x-imageOffset.left)*100.0/image.width()).toFixed(2));
-                $('#id_MOTION_DETECT_AREA_TL_Y').val(((tl_y-imageOffset.top)*100.0/image.height()).toFixed(2));
-                $('#id_MOTION_DETECT_AREA_BR_X').val(((tl_x-imageOffset.left+width)*100.0/image.width()).toFixed(2));
-                $('#id_MOTION_DETECT_AREA_BR_Y').val(((tl_y-imageOffset.top+height)*100.0/image.height()).toFixed(2));
+                $('#id_MOTION_DETECT_AREA_TL_X').val(Number(((tl_x-imageOffset.left)*100.0/image.width()).toFixed(2)));
+                $('#id_MOTION_DETECT_AREA_TL_Y').val(Number(((tl_y-imageOffset.top)*100.0/image.height()).toFixed(2)));
+                $('#id_MOTION_DETECT_AREA_BR_X').val(Number(((tl_x-imageOffset.left+width)*100.0/image.width()).toFixed(2)));
+                $('#id_MOTION_DETECT_AREA_BR_Y').val(Number(((tl_y-imageOffset.top+height)*100.0/image.height()).toFixed(2)));
             });
 
             $('#configForm').submit(function(e) {
                 e.preventDefault();
-                
-                $.post(window.location.href,$(this).serialize(), function(response, textStatus, xhr) {
-                    if (xhr.status == 200)
-                        showToast("No changes made");
-                    else if (xhr.status == 202)
+                serialized = $(this).serializeArray();
+                dataObj = {}
+                $.each(serialized, function(i, v) {
+                            dataObj[v.name] = v.value;});
+                $.ajax({
+                    type:"POST",
+                    data:JSON.stringify(dataObj),
+                    headers: {'X-CSRFToken': csrftoken},
+                    success: function(result) {
                         showToast("Config saved!");
-                    else{
-                        console.error(response);
+                    },
+                    error: function(result) {
+                        console.error(result);
                         showToast("An error occurred. View console for more info")
                     }
                 });
