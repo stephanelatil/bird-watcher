@@ -88,10 +88,17 @@ class ConfigView(GlobalContextMixin, FormMixin, View):
         data:dict = loads(request.body)
         keys_updated = []
         for key, value in data.items():
-            #invalid key or 
+            # Defensive programming: Try to cast the value from client to correct type
+            # If no cast is defined just cast to string and move on
+            try:
+                key_config = list(settings.CONSTANCE_CONFIG.get(key, (None, None, str)))+[str,str,str]
+                value = key_config[2](value)
+            except:
+                continue
+            #if key does not exist or value is already set to that value, then ignore
             if not hasattr(config, key) or getattr(config, key) == value:
                 continue
-            #config changed:
+            #cast to correct type
             setattr(config, key, value)
             keys_updated.append(key)
         if len(keys_updated) > 0 and watcher_is_running():

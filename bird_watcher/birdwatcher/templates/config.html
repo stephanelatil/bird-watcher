@@ -112,6 +112,14 @@ const csrftoken = getCookie('csrftoken');</script>
         }
         
         $(document).ready(function() {
+            $.each(["#id_MOTION_DETECT_AREA_TL_X", '#id_MOTION_DETECT_AREA_TL_Y', '#id_MOTION_DETECT_AREA_BR_X', '#id_MOTION_DETECT_AREA_BR_X'],
+            (i,v) =>{
+                item = $(v);
+                item.prop('type', 'number');
+                item.prop('step', 0.1);
+                item.prop('min', 0.0);
+                item.prop('max', 100.0);
+            });
             var image = $('#selected-image');
             var selection_rectangle = $('#selection-rectangle');
             var imageOffset = image.offset();
@@ -127,10 +135,10 @@ const csrftoken = getCookie('csrftoken');</script>
                 });
 
             image.mousedown(function(e) {
+                isSelecting = true;
                 image = $('#selected-image');
                 selection_rectangle = $('#selection-rectangle');
                 imageOffset = image.offset();
-                isSelecting = true;
                 startX = e.pageX;
                 startY = e.pageY;
 
@@ -161,22 +169,21 @@ const csrftoken = getCookie('csrftoken');</script>
             });
 
             $(document).mouseup(function(e) {
+                if (!isSelecting) return;
                 isSelecting = false;
-                $('#id_MOTION_DETECT_AREA_TL_X').val(Number(((tl_x-imageOffset.left)*100.0/image.width()).toFixed(2)));
-                $('#id_MOTION_DETECT_AREA_TL_Y').val(Number(((tl_y-imageOffset.top)*100.0/image.height()).toFixed(2)));
-                $('#id_MOTION_DETECT_AREA_BR_X').val(Number(((tl_x-imageOffset.left+width)*100.0/image.width()).toFixed(2)));
-                $('#id_MOTION_DETECT_AREA_BR_Y').val(Number(((tl_y-imageOffset.top+height)*100.0/image.height()).toFixed(2)));
+                $('#id_MOTION_DETECT_AREA_TL_X').val(Number(((tl_x-imageOffset.left)*100.0/image.width()).toFixed(1)));
+                $('#id_MOTION_DETECT_AREA_TL_Y').val(Number(((tl_y-imageOffset.top)*100.0/image.height()).toFixed(1)));
+                $('#id_MOTION_DETECT_AREA_BR_X').val(Number(((tl_x-imageOffset.left+width)*100.0/image.width()).toFixed(1)));
+                $('#id_MOTION_DETECT_AREA_BR_Y').val(Number(((tl_y-imageOffset.top+height)*100.0/image.height()).toFixed(1)));
             });
 
             $('#configForm').submit(function(e) {
                 e.preventDefault();
-                serialized = $(this).serializeArray();
-                dataObj = {}
-                $.each(serialized, function(i, v) {
-                            dataObj[v.name] = v.value;});
+                
+                dataObj = Object.fromEntries(new FormData(e.target).entries());
                 $.ajax({
                     type:"POST",
-                    data:JSON.stringify(dataObj),
+                    data:dataObj,
                     headers: {'X-CSRFToken': csrftoken},
                     success: function(result) {
                         showToast("Config saved!");
