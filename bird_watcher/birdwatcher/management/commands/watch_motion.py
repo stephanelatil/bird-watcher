@@ -153,8 +153,21 @@ class VideoWriter(Interruptable):
         self._write_thread.join()
         
 class MotionDetector:
-    def __init__(self, shrink_ratio=1/16, background_fade_rate=0.8, mov_check_every=5, mov_on_frame_amount=0.1) -> None:
-        self._shrink_ratio = shrink_ratio
+    def __init__(self, check_area:tuple[tuple[float,float],tuple[float,float]],
+                 shrink_ratio=1/16, background_fade_rate=0.8,
+                 mov_check_every=5, mov_on_frame_amount=0.1) -> None:
+        self._check_area = np.rint(check_area).astype(int)
+        #make sure check area is at least 1px by 1px in size Otherwise possible div by 0 errors
+        for i in range(2):
+            if self._check_area[0][i] == self._check_area[1][i]:
+                self._check_area[0][i] = max(0, self._check_area[0][i]-1)
+                if self._check_area[0][i] == 0:
+                    self._check_area[1][i] += 1
+        # _shrink_ratio is how much to scale the frame before doing motion detection on: Less pixels = less power needed
+        # Here we calculate the shrink ratio to make both the X and Y 60 pix wide/tall and average the two. 
+        self._shrink_ratio = (60/(check_area[1][1] - check_area[0][1]) + 60/(check_area[1][0] - check_area[0][0]))/2
+        #we make sure the image is not upscaled (useless just adds noise and more overhead)
+        self._shrink_ratio = min(1, self._shrink_ratio)
         self._background = np.zeros((0,0)) #no detected background yet
         self._background_fade_rate = background_fade_rate
         self._mov_check_every = mov_check_every
@@ -163,11 +176,16 @@ class MotionDetector:
         logger.debug("Starting Motion Detector")
     
     def _gray_and_resize_frame(self, frame:cv2.typing.MatLike) -> cv2.typing.MatLike:
+        #select only the part of the frame to consider
+        frame = frame[self._check_area[0][0]:self._check_area[1][0],
+                      self._check_area[0][1]:self._check_area[1][1],:]
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         #pass a (0,0) destination size so that it will be auto determined by the shrink ratio
+        if self._shrink_ratio == 1:
+            return frame #no resize needed
         return cv2.resize(frame, (0,0), fx=self._shrink_ratio, fy=self._shrink_ratio)
     
-    def update_backgroud(self, normalized_frame):
+    def update_background(self, normalized_frame):
         self._background = self._background * self._background_fade_rate/(1+self._background_fade_rate) + normalized_frame/(1+self._background_fade_rate)
         self._background = self._background.astype(np.uint8)
     
@@ -184,7 +202,7 @@ class MotionDetector:
             return False
         
         diff = cv2.absdiff(self._background, frame)
-        self.update_backgroud(frame)
+        self.update_background(frame)
         _,diff = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)
         num_pixels_theshold = self._mov_on_frame_amount*diff.shape[0]*diff.shape[1]
         nonZero = cv2.countNonZero(diff)
@@ -258,7 +276,7 @@ class CamInterface:
         return self._fps
     
     @property
-    def resolution(self):
+    def resolution(self) -> tuple[int,int]:
         return self._resolution
     
     def close(self):
@@ -272,6 +290,13 @@ class CapAndRecord(Interruptable):
         if cam_options is None:
             cam_options = {}
         self._cam = CamInterface(options=cam_options)
+        self._check_area = (
+            (config.MOTION_DETECT_AREA_TL_X*self._cam.resolution[0]/100.0,
+             config.MOTION_DETECT_AREA_TL_Y*self._cam.resolution[1]/100.0),
+            
+            (config.MOTION_DETECT_AREA_BR_X*self._cam.resolution[0]/100.0,
+             config.MOTION_DETECT_AREA_BR_Y*self._cam.resolution[1]/100.0)
+        )
         self._capThread = Thread(target=self._run, daemon=False)
         super().__init__(self._capThread)
         self._frame_movement_check = self._cam.frame_rate*movement_check
@@ -283,8 +308,9 @@ class CapAndRecord(Interruptable):
     def _run(self):
         try:
             logger.info("Motion Detection and Capture starting")
-            motion = MotionDetector(shrink_ratio=1/20, mov_on_frame_amount=self._motion_threshold,
-                                    #mov check twice a sec
+            motion = MotionDetector(self._check_area,
+                                    shrink_ratio=1/20,
+                                    mov_on_frame_amount=self._motion_threshold,
                                     mov_check_every=int(self._frame_movement_check))
             writer = None
             frames_without_motion = 0
