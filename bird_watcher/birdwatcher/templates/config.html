@@ -112,19 +112,28 @@ const csrftoken = getCookie('csrftoken');</script>
         }
         
         $(document).ready(function() {
-            $.each(["#id_MOTION_DETECT_AREA_TL_X", '#id_MOTION_DETECT_AREA_TL_Y', '#id_MOTION_DETECT_AREA_BR_X', '#id_MOTION_DETECT_AREA_BR_X'],
+            var image = $('#selected-image');
+            var selection_rectangle = $('#selection-rectangle');
+            var imageOffset = image.offset();
+            var isSelecting = false;
+            var startX, startY, tl_x, tl_y, width, height;
+
+            $.each(["#id_MOTION_DETECT_AREA_TL_X", '#id_MOTION_DETECT_AREA_TL_Y', '#id_MOTION_DETECT_AREA_BR_X', '#id_MOTION_DETECT_AREA_BR_Y'],
             (i,v) =>{
                 item = $(v);
                 item.prop('type', 'number');
                 item.prop('step', 0.1);
                 item.prop('min', 0.0);
                 item.prop('max', 100.0);
+                item.change((e) =>{
+                    selection_rectangle.css({
+                        left: imageOffset.left + Number($('#id_MOTION_DETECT_AREA_TL_X').val())/100*image.width(),
+                        top: imageOffset.top + Number($('#id_MOTION_DETECT_AREA_TL_Y').val())/100*image.height(),
+                        width: (Number($('#id_MOTION_DETECT_AREA_BR_X').val())-Number($('#id_MOTION_DETECT_AREA_TL_X').val()))/100*image.width(),
+                        height: (Number($('#id_MOTION_DETECT_AREA_BR_Y').val())-Number($('#id_MOTION_DETECT_AREA_TL_Y').val()))/100*image.height()
+                    });
+                });
             });
-            var image = $('#selected-image');
-            var selection_rectangle = $('#selection-rectangle');
-            var imageOffset = image.offset();
-            var isSelecting = false;
-            var startX, startY, tl_x, tl_y, width, height;
             
             selection_rectangle.css({
                     left: imageOffset.left + {{ box_tl_x }}*image.width()/100.0,
