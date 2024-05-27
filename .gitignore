@@ -28,3 +28,6 @@ venv.bak/
 
 # Log files
 *.log
+
+# Frame for config
+single_frame.webp
