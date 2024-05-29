@@ -174,7 +174,7 @@ class FramePublisher:
                 buffer = BytesIO()
                 if check:
                     np.save(buffer, frame, allow_pickle=False)
-                    for conn,sem in self._connections.items():
+                    for conn,sem in list(self._connections.items()):
                         try:
                             self._send(conn, buffer.getbuffer())
                         except: 
