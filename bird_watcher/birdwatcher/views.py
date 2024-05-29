@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from birdwatcher.models import Video, Tag
 from birdwatcher.forms import TagVideoForm, ConstanceSettingsForm
-from birdwatcher.utils import start_or_restart_birdwatcher, kill_birdwatcher, watcher_is_running
+from birdwatcher.utils import start_or_restart_birdwatcher, kill_birdwatcher, watcher_is_running, FrameConsumer
 from django.views.generic import View, ListView, DetailView
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
@@ -207,12 +207,18 @@ class LiveStreamVideo:
         try:
             sleep(0.1) #wait for frame request
             vid = None
-            vid = cv2.VideoCapture(settings.STREAM_VID_DEVICE, cv2.CAP_V4L2)
-            try:
-                width, height = str(config.VID_RESOLUTION).split('x',1)
-                vid.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
-                vid.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
-            except: pass
+            match settings.DEVICE_DUPLICATION.lower():
+                case 'socket':
+                    vid = FrameConsumer()
+                case 'v4l2loopback':
+                    vid = cv2.VideoCapture(settings.STREAM_VID_DEVICE, cv2.CAP_V4L2)
+                    try:
+                        width, height = str(config.VID_RESOLUTION).split('x',1)
+                        vid.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
+                        vid.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
+                    except: pass
+                case _:
+                    raise RuntimeError("No video duplication available for streaming")
             while not singleton._interrupt[0]:
                 flag, frame = vid.read()
                 if not flag: continue
@@ -237,7 +243,7 @@ class LiveStreamVideo:
         self._thread = None
 
     async def get_frame(self):
-        def wait_frame(cv:Condition):
+        def wait_frame(cv):
             with cv:
                 cv.wait()
         await sync_to_async(wait_frame)(self._cv)
