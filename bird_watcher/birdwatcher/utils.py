@@ -244,6 +244,7 @@ class FramePublisher:
         logger.debug("Joining broadcast thread")
         self._broadcast_thread.join()
         logger.debug("Threads joined")
+        os.remove(self.SOCKET_PATH)
         
 class FrameConsumer(object):
     SOCKET_PATH = os.path.join(str(settings.BASE_DIR), "video_duplication_sock.s")
