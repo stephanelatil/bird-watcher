@@ -10,7 +10,7 @@ from django.conf import settings
 from constance import config
 from django.core.management import BaseCommand
 from birdwatcher.models import Video
-from birdwatcher.utils import setup_logging
+from birdwatcher.utils import setup_logging, FrameConsumer
 from os import path
 from time import perf_counter
 import signal
@@ -57,6 +57,7 @@ class Interruptable:
     
     def interrupt(self, global_interrupt=False):
         self._interrupted = True
+        logger.debug("Interrupting threads")
         if global_interrupt:
             StaticThreadInterrupt.interrupt_all()
 
@@ -232,7 +233,7 @@ class CamInterface:
         self._fps = int(math.ceil(frame_setup_count/(perf_counter()-start)))
         
         #write a frame to static files for the config
-        cv2.imwrite(str(path.join(settings.STATICFILES_DIRS, "single_frame.webp")),
+        cv2.imwrite(str(path.join(settings.STATICFILES_DIRS[0], "single_frame.webp")),
                     cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
                     [cv2.IMWRITE_WEBP_QUALITY, 95])
 
@@ -244,12 +245,15 @@ class CamInterface:
         return self._frame_generator.__next__()
     
     def _start_cam(self):
-        self._camera = cv2.VideoCapture(settings.VID_CAMERA_DEVICE, cv2.CAP_V4L2)
-        try:
-            width, height = str(config.VID_RESOLUTION).split('x',1)
-            self._camera.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
-            self._camera.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
-        except: pass
+        if settings.DEVICE_DUPLICATION.lower() == 'socket':
+            self._camera = FrameConsumer()
+        else:
+            self._camera = cv2.VideoCapture(settings.VID_CAMERA_DEVICE, cv2.CAP_V4L2)
+            try:
+                width, height = str(config.VID_RESOLUTION).split('x',1)
+                self._camera.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
+                self._camera.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
+            except: pass
     
     def _get_frame_gen(self):
         try:
@@ -259,6 +263,9 @@ class CamInterface:
                 check, frame = self._camera.read()
                 if check:
                     yield cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                else:
+                    logger.info("Camera issue. Stopping recorder")
+                    break
         finally:
             if not self._camera is None:
                 self._camera.release()
@@ -376,12 +383,14 @@ class Command(BaseCommand):
                         before_movement=config.RECORD_SECONDS_BEFORE_MOVEMENT,
                         after_movement=config.RECORD_SECONDS_AFTER_MOVEMENT,
                         motion_threshold=config.MOTION_DETECTION_THRESHOLD)
-        atexit.register(c.stop)
         #register sigterm signal handler
         signal.signal(signal.SIGTERM, lambda *a, **kw : c.stop())
         c.start()
         try:
             input("Press enter to stop detecting motion.\n")
-        except KeyboardInterrupt: pass
+        except KeyboardInterrupt: 
+            logger.debug("Got keyboard interrupt")
         except EOFError: pass
+        finally:
+            c.stop()
         c._capThread.join() #ensure to wait forever or until stop
