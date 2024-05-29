@@ -1,7 +1,5 @@
 [Unit]
-Description=Service running the bird_watcher motion detector
-Requires=birdwatcher-duplication.service
-After=birdwatcher-duplication.service
+Description=Service used to duplicate video to multiple processes
 
 [Service]
 User=root
