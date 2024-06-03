@@ -242,9 +242,10 @@ class LiveStreamVideo:
 
     async def get_frame(self, curr_frame_num:int):
         while self._frame_num <= curr_frame_num:
-            await asleep(1/30) #wait 1 frame time (~30fps)
+            await asleep(0.01) #wait 1 frame time (~30fps)
+        curr_frame_num = self._frame_num
         self._frames_since_last_query = 0
-        return self._current_frame, self._frame_num
+        return self._current_frame, curr_frame_num
     
     @staticmethod
     def format_frame(frame):
