@@ -387,7 +387,8 @@ class Command(BaseCommand):
         signal.signal(signal.SIGTERM, lambda *a, **kw : c.stop())
         c.start()
         try:
-            input("Press enter to stop detecting motion.\n")
+            logger.info("Motion detector started. Press Ctrl-C or SigTerm to stop")
+            c._capThread.join()
         except KeyboardInterrupt: 
             logger.debug("Got keyboard interrupt")
         except EOFError: pass
