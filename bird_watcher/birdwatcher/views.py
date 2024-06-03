@@ -14,7 +14,6 @@ from json import loads, dumps
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import StreamingResponse, FileResponse, Response, RedirectResponse
 from threading import Thread
-from asgiref.sync import sync_to_async
 import os, cv2, logging
 from typing import BinaryIO
 from starlette._compat import md5_hexdigest
@@ -173,7 +172,7 @@ class VideoTagView(View):
 
 class LiveStreamVideo:
     _singelton = None
-    _max_unread_frames = 60
+    _max_unread_frames = 30
     
     def __init__(self):
         """The class is used by the livestream endpoint.
@@ -367,7 +366,7 @@ def range_requests_response(
 @api_router.get('/stream/{pk}')
 async def stream_video_file(request:Request, pk:int):
     try:
-        vid = await sync_to_async(get_object_or_404)(Video.objects.all(), pk=pk)
+        vid = get_object_or_404(Video.objects.all(), pk=pk)
     except:
         return Response(status_code=404)
     
