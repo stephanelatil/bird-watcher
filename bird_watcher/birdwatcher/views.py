@@ -13,7 +13,6 @@ from django.views.generic.edit import FormMixin
 from json import loads, dumps
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import StreamingResponse, FileResponse, Response, RedirectResponse
-from multiprocessing import Condition
 from threading import Thread
 from asgiref.sync import sync_to_async
 import os, cv2, logging
@@ -187,7 +186,7 @@ class LiveStreamVideo:
         To be able to reuse the camera device for motion detection and livestream a device
         loopback like v4l2loopback should be used
         """
-        self._cv = Condition()
+        self._frame_num = 0
         self._frames_since_last_query = 0
         self._current_frame = b''
         self._interrupt = [False]
@@ -221,11 +220,11 @@ class LiveStreamVideo:
                     raise RuntimeError("No video duplication available for streaming")
             while not singleton._interrupt[0]:
                 flag, frame = vid.read()
-                if not flag: continue
-                with singleton._cv:
-                    singleton._current_frame = LiveStreamVideo.format_frame(cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 70])[1])
-                    singleton._frames_since_last_query += 1
-                    singleton._cv.notify_all()
+                if not flag:
+                    continue
+                singleton._current_frame = LiveStreamVideo.format_frame(cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 70])[1])
+                singleton._frame_num += 1
+                singleton._frames_since_last_query += 1
                 if singleton.unread_frames >= singleton._max_unread_frames:
                     singleton._kill_thread()
         finally:
@@ -242,13 +241,11 @@ class LiveStreamVideo:
         self._interrupt[0] = True
         self._thread = None
 
-    async def get_frame(self):
-        def wait_frame(cv):
-            with cv:
-                cv.wait()
-        await sync_to_async(wait_frame)(self._cv)
+    async def get_frame(self, curr_frame_num:int):
+        while self._frame_num <= curr_frame_num:
+            await asleep(1/30) #wait 1 frame time (~30fps)
         self._frames_since_last_query = 0
-        return self._current_frame
+        return self._current_frame, self._frame_num
     
     @staticmethod
     def format_frame(frame):
@@ -264,10 +261,11 @@ class LiveStreamVideo:
     async def livestream_frame_generator():
         stream = LiveStreamVideo.getSingleton()
         stream._start_thread()
+        curr_num = 0
         while stream.unread_frames < LiveStreamVideo._max_unread_frames:
-            yield await stream.get_frame()
-        stream._kill_thread()
-        raise StopAsyncIteration()
+            frame, curr_num = await stream.get_frame(curr_num)
+            yield frame
+        return
     
 @api_router.get('/stream/single')
 def get_current_camera_view(request:Request):
