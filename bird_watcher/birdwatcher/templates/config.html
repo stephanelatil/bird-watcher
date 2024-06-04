@@ -56,7 +56,7 @@ const csrftoken = getCookie('csrftoken');</script>
     </div>
     <script>
         $(document).ready(function() {
-          $('#toggleBirdWatcherOn').change(function() {
+          $('#toggleBirdWatcherOn').on("change", function() {
             // Show loading spinner and disable toggle toggle while ajax is running
             $('#loadingSpinner').removeClass('d-none');
             $('#toggleBirdWatcherOn').prop('disabled', true);
@@ -93,7 +93,7 @@ const csrftoken = getCookie('csrftoken');</script>
             });
           });
 
-          $('#toggleBirdWatcherOff').change(function() {
+          $('#toggleBirdWatcherOff').on( "change", function() {
             // Show loading spinner and disable toggle toggle while ajax is running
             $('#loadingSpinner').removeClass('d-none');
             $('#toggleBirdWatcherOn').prop('disabled', true);
