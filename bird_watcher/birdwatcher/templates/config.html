@@ -57,43 +57,72 @@ const csrftoken = getCookie('csrftoken');</script>
     <script>
         $(document).ready(function() {
           $('#toggleBirdWatcherOn').change(function() {
-            var isChecked = $(this).prop('checked');
             // Show loading spinner and disable toggle toggle while ajax is running
             $('#loadingSpinner').removeClass('d-none');
-            $('#toggleBirdWatcher').prop('disabled', true);
             $('#toggleBirdWatcherOn').prop('disabled', true);
             $('#toggleBirdWatcherOff').prop('disabled', true);
             
             // Send AJAX request
             $.ajax({
-              type: isChecked ? 'PUT' : 'DELETE',
+              type: 'PUT',
               url: '/birdwatcher/motion',
               success: function(response) {
                 // Hide loading spinner
                 $('#loadingSpinner').addClass('d-none');
                 // Re-enable toggle button
-                $('#toggleBirdWatcher').prop('disabled', false);
                 $('#toggleBirdWatcherOn').prop('disabled', false);
                 $('#toggleBirdWatcherOff').prop('disabled', false);
                 
                 // Show success message
-                showToast('Action successful!');
+                showToast('Motion Detector Started');
               },
               error: function(xhr, status, textStatus, errorthrown) {
                 // Hide loading spinner
                 $('#loadingSpinner').addClass('d-none');
                 
                 // Re-enable toggle button
-                $('#toggleBirdWatcher').prop('disabled', false);
                 $('#toggleBirdWatcherOn').prop('disabled', false);
                 $('#toggleBirdWatcherOff').prop('disabled', false);
                 
                 // Return toggle to previous state
-                if (isChecked){
-                    document.getElementById('toggleBirdWatcherOff').checked = true;
-                }else{
-                    document.getElementById('toggleBirdWatcherOn').checked = true;
-                }
+                document.getElementById('toggleBirdWatcherOff').checked = true;
+                
+                // Show error message
+                showToast('Error: ' + xhr.responseJSON.error);
+              }
+            });
+          });
+
+          $('#toggleBirdWatcherOff').change(function() {
+            // Show loading spinner and disable toggle toggle while ajax is running
+            $('#loadingSpinner').removeClass('d-none');
+            $('#toggleBirdWatcherOn').prop('disabled', true);
+            $('#toggleBirdWatcherOff').prop('disabled', true);
+            
+            // Send AJAX request
+            $.ajax({
+              type: 'DELETE',
+              url: '/birdwatcher/motion',
+              success: function(response) {
+                // Hide loading spinner
+                $('#loadingSpinner').addClass('d-none');
+                // Re-enable toggle button
+                $('#toggleBirdWatcherOn').prop('disabled', false);
+                $('#toggleBirdWatcherOff').prop('disabled', false);
+                
+                // Show success message
+                showToast('Motion Detector Stopped');
+              },
+              error: function(xhr, status, textStatus, errorthrown) {
+                // Hide loading spinner
+                $('#loadingSpinner').addClass('d-none');
+                
+                // Re-enable toggle button
+                $('#toggleBirdWatcherOn').prop('disabled', false);
+                $('#toggleBirdWatcherOff').prop('disabled', false);
+                
+                // Return toggle to previous state
+                document.getElementById('toggleBirdWatcherOn').checked = true;
                 
                 // Show error message
                 showToast('Error: ' + xhr.responseJSON.error);
