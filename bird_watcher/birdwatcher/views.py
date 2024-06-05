@@ -367,7 +367,7 @@ def range_requests_response(
 @api_router.get('/stream/{pk}')
 async def stream_video_file(request:Request, pk:int):
     try:
-        vid = Video.objects.get(pk=pk)
+        vid = await Video.objects.aget(pk=pk)
     except:
         return Response(status_code=404)
     
