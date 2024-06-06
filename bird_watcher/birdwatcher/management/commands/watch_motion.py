@@ -232,16 +232,6 @@ class CamInterface:
         for i in range(frame_setup_count):
             frame = self._frame_generator.__next__()
         self._fps = int(math.ceil(frame_setup_count/(perf_counter()-start)))
-        
-        #write a frame to static files for the config
-        frame_path = str(path.join(settings.STATICFILES_DIRS[0], "single_frame.webp"))
-        try:
-            remove(frame_path)
-        except:
-            pass
-        cv2.imwrite(frame_path,
-                    cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
-                    [cv2.IMWRITE_WEBP_QUALITY, 95])
 
         logger.debug(f"Read {frame_setup_count} frames in {(perf_counter()-start)} seconds for {self._fps} fps")
         self._resolution = frame.shape[:2]
@@ -327,6 +317,16 @@ class CapAndRecord(Interruptable):
                                     mov_check_every=int(self._frame_movement_check))
             writer = None
             frames_without_motion = 0
+            
+            frame = self._cam.get_next_frame()
+            frame_path = str(path.join(settings.STATICFILES_DIRS[0], "single_frame.webp"))
+            try:
+                remove(frame_path)
+            except:
+                logger.exception(f"Unable to remove {frame_path}")
+            cv2.imwrite(frame_path,
+                        cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
+                        [cv2.IMWRITE_WEBP_QUALITY, 95])
             
             while not self.is_interrupted:
                 frame = self._cam.get_next_frame()
