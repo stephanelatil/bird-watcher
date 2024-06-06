@@ -270,7 +270,7 @@ class LiveStreamVideo:
 @api_router.get('/stream/single')
 def get_current_camera_view(request:Request):
     if os.path.exists(os.path.join(settings.STATICFILES_DIRS[0], 'single_frame.webp')):
-        return RedirectResponse('/static/single_frame.webp', status.HTTP_308_PERMANENT_REDIRECT)
+        return RedirectResponse('/static/single_frame.webp', status.HTTP_301_MOVED_PERMANENTLY)
     return RedirectResponse('/static/no-stream.jpg')
 
 @api_router.get('/stream/live')

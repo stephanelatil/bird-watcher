@@ -12,6 +12,7 @@ from django.core.management import BaseCommand
 from birdwatcher.models import Video
 from birdwatcher.utils import setup_logging, FrameConsumer
 from os import path
+from os import remove
 from time import perf_counter
 import signal
 
@@ -233,7 +234,12 @@ class CamInterface:
         self._fps = int(math.ceil(frame_setup_count/(perf_counter()-start)))
         
         #write a frame to static files for the config
-        cv2.imwrite(str(path.join(settings.STATICFILES_DIRS[0], "single_frame.webp")),
+        frame_path = str(path.join(settings.STATICFILES_DIRS[0], "single_frame.webp"))
+        try:
+            remove(frame_path)
+        except:
+            pass
+        cv2.imwrite(frame_path,
                     cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
                     [cv2.IMWRITE_WEBP_QUALITY, 95])
 
