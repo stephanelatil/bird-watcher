@@ -6,6 +6,10 @@ A self-hosted web app to be placed on a micro computer (96boards or raspberry-pi
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/gbraad)
 
+## Quick-Start
+
+To get up and running quickly simply clone this repo and run the setup.sh file. It will install all required libraries, python venv, setup the database and the services. It will also ask of you want to enable video device duplication with either a UNIX socket or v4l2loopback or none at all (answer no to the questions). The last questions asks if you want the webapp and motion detector to autostart on boot.
+
 ## Getting-Started
 
 ### Installing Requirements
@@ -30,6 +34,12 @@ Before running the app you may have to edit some settings. All the settings can 
 
 **NB**: You must set at least the Django secret key.
 
+### If Using Video Duplication
+
+You may need to duplicate the video camera stream in some way if you want the live-stream tab to work. For that you need to enable `socket` duplication or `v4l2loopback` in the `.env` file.
+
+**For additional info see:** [Enable live-streaming](#enable-live-streaming)
+
 ### Running the WebApp
 
 #### Running it as a simple command
@@ -38,18 +48,16 @@ To run the app enter the `bird_watcher` directory and build the database (only n
 
 ```bash
 cd bird_watcher
-python3 manage.py migrate #only needed once, subsequent runs does not need it but won't break anything if run multiple times
-python3 manage.py run_webapp
+python3 manage.py migrate #only needed once to build the database, subsequent runs are not needed it but won't break anything if run multiple times
+sudo python3 manage.py run_webapp
 ```
 
-The app is now accessible locally at [127.0.0.1:8000](http://127.0.0.1:8000) or by using you public/local network IP. The port is set in the .env file
-
-You can add `--host 0.0.0.0` to accept connections on your LAN IP and on your public IP if your have your ports open.
-You can also edit the listening port with `--port 12345` to open the app on port *12345* for example. **NB** To use ports  [1,1024] you may need to use sudo privileges.
+The app is now accessible by using the host and port set in the .env file.
+**NB** *Superuser is necessary for starting and stopping the other microservices run as systemctl processes
 
 #### Run it as a service
 
-Using the service files in the `services` directory run it as a service so it auto-starts on boot!
+Using the service files in the `services` directory run it as a service so it auto-starts on boot! simply place the service files in `/etc/systemd/system/` and run them with `sudo systemctl start birdwatcher-webapp.service`
 
 ### Running the motion detector
 
@@ -57,10 +65,10 @@ To run the motion detector part, ensure your settings are set and the camera is 
 
 ```bash
 cd bird_watcher
-python3 manage.py watch_motion
+sudo python3 manage.py watch_motion
 ```
 
-Or you can start it from the webapp directly. It will run until stopped (by the webapp), until the system reboots or until it crashes (may happen sorry)
+Or you can start it from the webapp directly. It will run until stopped (by the webapp), until the system reboots or until it crashes (may happen sorry).
 
 ## Application Parts
 
@@ -111,7 +119,7 @@ These settings *must* be set as there is no default value for them. The value in
 To enable live-streaming you need to be able to have a loopback video device to be read by the service that handles live-streaming. To do that you need to install `v4l2loopback` on your device.
 
 It will install v4l2loopback and set it up for autostart on reboot. It will add a loopback device /dev/video100
-You can now set the /dev/video100 for the birdwatcher device and /dev/video101 for the livestream!
+You can now set the /dev/video100 for the birdwatcher device and the livestream!
 
 For Debian run
 
@@ -122,14 +130,20 @@ echo 'v4l2loopback' | sudo tee -a /etc/modules
 echo 'options v4l2loopback devices=1 video_nr=100 card_label="Birds"' | sudo tee '/etc/modprobe.d/v4l2loopback.conf'
 ```
 
-Note that you will also have to send data to the loopback devices using the following command that will run in the background. Running it as cron or as a service using the `v4l2loopback-populate.service` file in the `services` folder.
+Note that you will also have to send data to the loopback devices using the following command that will run in the background. Running it as a service using the `birdwatcher-duplication.service` file in the `services` folder or as a command.
 
 ### As a bash command
 
 Note that this means the shell will be used and cannot be closed or the process will be killed! you can use nohup to send it to the background but it will not be run on reboot (if a crash or reboot happens)
 
 ```bash
-ffmpeg -f v4l2 -i /dev/video0 -codec copy -f v4l2 /dev/video100
+sudo python3 manage.py video_duplication
 ```
 
 ### As a service
+
+If running the webapp or motion-detector as a service this service will be run automatically. Or you can start it manually with:
+
+```bash
+sudo systemctl start birdwatcher-duplication.service
+```
