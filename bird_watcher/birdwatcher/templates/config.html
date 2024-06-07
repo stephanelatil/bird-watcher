@@ -140,7 +140,7 @@ const csrftoken = getCookie('csrftoken');</script>
             toast.show();
         }
         
-        $(document).ready(function() {
+        $(document).ready(async function() {
             var image = $('#selected-image');
             var selection_rectangle = $('#selection-rectangle');
             var imageOffset = image.offset();
