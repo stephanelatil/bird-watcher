@@ -12,7 +12,7 @@ from django.core.management import BaseCommand
 from birdwatcher.models import Video
 from birdwatcher.utils import setup_logging, FrameConsumer
 from os import path
-from os import remove
+from os import chmod
 from time import perf_counter
 import signal
 
@@ -321,9 +321,9 @@ class CapAndRecord(Interruptable):
             frame = self._cam.get_next_frame()
             frame_path = str(path.join(settings.STATICFILES_DIRS[0], "single_frame.webp"))
             try:
-                remove(frame_path)
+                chmod(frame_path, 0o666)
             except:
-                logger.exception(f"Unable to remove {frame_path}")
+                pass
             cv2.imwrite(frame_path,
                         cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
                         [cv2.IMWRITE_WEBP_QUALITY, 95])
