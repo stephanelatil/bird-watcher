@@ -270,8 +270,8 @@ class LiveStreamVideo:
 @api_router.get('/stream/single')
 def get_current_camera_view(request:Request):
     if os.path.exists(os.path.join(settings.STATICFILES_DIRS[0], 'single_frame.webp')):
-        return RedirectResponse('/static/single_frame.webp', status.HTTP_301_MOVED_PERMANENTLY)
-    return RedirectResponse('/static/no-stream.jpg')
+        return FileResponse('static/single_frame.webp', headers={"Cache-Control":"no-cache"})
+    return FileResponse('static/no-stream.jpg', headers={"Cache-Control":"max-age=600"})
 
 @api_router.get('/stream/live')
 async def livestream_video():
