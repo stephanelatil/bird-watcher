@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from birdwatcher.models import Video, Tag
-from birdwatcher.serializer import VideoSerializer
+from birdwatcher.serializer import VideoSerializer, ConfigSerializer
 from birdwatcher.forms import TagVideoForm, ConstanceSettingsForm
 from birdwatcher.utils import start_or_restart_birdwatcher, kill_birdwatcher, watcher_is_running, FrameConsumer
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.conf import settings
 from constance import config
+from constance.models import Constance
 from django.http import HttpResponse, HttpResponseNotModified
 from django.views.generic.edit import FormMixin
 from json import loads, dumps
@@ -39,16 +40,6 @@ class RESTVideoView(ReadOnlyModelViewSet):
     
     def get_serializer_class(self, *args, **kwargs):
         return VideoSerializer
-    
-    # def retrieve(self, request, pk=None):
-    #     vid = get_object_or_404(self.queryset, pk=pk)
-    #     serializer = self.get_serializer_class(instance=vid, many=False)
-    #     return RESTResponse(serializer.data, status=200, content_type='application/json')
-    
-    # def get(self, request, *args, **kwargs):
-    #     #need pagination next
-    #     serializer = self.get_serializer_class(self.queryset.all(), many=True)
-    #     return RESTResponse(serializer.data, status=200, content_type='application/json')
     
     def delete(self, request, *args, pk=None, **kwargs):
         vid:Video = get_object_or_404(self.queryset, pk=pk)
@@ -87,7 +78,19 @@ class RESTVideoView(ReadOnlyModelViewSet):
         tag,_ = Tag.objects.get_or_create(name=request.data.get('tag'))
         vid.tags.add(tag)
         vid.save()
-        return RESTResponse(status=status.HTTP_200_OK)        
+        return RESTResponse(status=status.HTTP_200_OK)     
+    
+class RESTConfigViewset(ReadOnlyModelViewSet):
+    queryset = Constance.objects.all()
+    serializer_class = ConfigSerializer
+    
+    def patch(self, request, *args, **kwargs):
+        valid_keys = list(dir(config))
+        for key, value in dict(request.data).items():
+            if not key in valid_keys:
+                continue
+            setattr(config, key, value)
+        return RESTResponse(status=status.HTTP_200_OK)
 
 #####################
 ###### Util mixin

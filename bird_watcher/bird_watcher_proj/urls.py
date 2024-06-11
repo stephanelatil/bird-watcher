@@ -17,19 +17,20 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path, include
 from django.views.generic.base import RedirectView
-from birdwatcher.views import VideoListView, LiveStreamView, SingleVideoView, VideoTagView, ConfigView, RESTVideoView
+from birdwatcher.views import VideoListView, LiveStreamView, SingleVideoView, VideoTagView, ConfigView, RESTVideoView, RESTConfigViewset
 from birdwatcher.router import OptionalSlashRouter
 
 router = OptionalSlashRouter()
-router.register('api/videos', RESTVideoView, 'video-api')
+router.register('api/video', RESTVideoView, 'video-api')
+router.register('api/config', RESTConfigViewset, 'config-api')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path(r'', include(router.urls)),
     re_path('config/?', ConfigView.as_view(), name=ConfigView.url_name),
-    re_path('video/?', VideoListView.as_view(), name=VideoListView.url_name),
-    re_path('video/(?P<pk>[1-9][0-9]*)/tag', VideoTagView.as_view(), name=VideoTagView.url_name),
-    re_path('video/(?P<pk>[1-9][0-9]*)', SingleVideoView.as_view(), name='video-detail'),
+    re_path('^video/?$', VideoListView.as_view(), name=VideoListView.url_name),
+    re_path('^video/(?P<pk>[1-9][0-9]*)/tag$', VideoTagView.as_view(), name=VideoTagView.url_name),
+    re_path('^video/(?P<pk>[1-9][0-9]*)$', SingleVideoView.as_view(), name='video-detail'),
     re_path('livestream/?', LiveStreamView.as_view(), name='video-livestream'),
     path(r'/', RedirectView.as_view(url='video', permanent=True), name='index')
 ]
