@@ -1,7 +1,11 @@
 from django.shortcuts import render
 from birdwatcher.models import Video, Tag
+from birdwatcher.serializer import VideoSerializer
 from birdwatcher.forms import TagVideoForm, ConstanceSettingsForm
 from birdwatcher.utils import start_or_restart_birdwatcher, kill_birdwatcher, watcher_is_running, FrameConsumer
+from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response as RESTResponse
 from django.views.generic import View, ListView, DetailView
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
@@ -24,6 +28,69 @@ from asyncio import sleep as asleep
 logger = logging.getLogger(settings.PROJECT_NAME)
 
 api_router = APIRouter()
+
+
+#####################
+###### REST API
+
+class RESTVideoView(ReadOnlyModelViewSet):
+    queryset = Video.objects.all()
+    permission_classes = [AllowAny]
+    
+    def get_serializer_class(self, *args, **kwargs):
+        return VideoSerializer
+    
+    # def retrieve(self, request, pk=None):
+    #     vid = get_object_or_404(self.queryset, pk=pk)
+    #     serializer = self.get_serializer_class(instance=vid, many=False)
+    #     return RESTResponse(serializer.data, status=200, content_type='application/json')
+    
+    # def get(self, request, *args, **kwargs):
+    #     #need pagination next
+    #     serializer = self.get_serializer_class(self.queryset.all(), many=True)
+    #     return RESTResponse(serializer.data, status=200, content_type='application/json')
+    
+    def delete(self, request, *args, pk=None, **kwargs):
+        vid:Video = get_object_or_404(self.queryset, pk=pk)
+        if not request.data is None and 'tag' in request.data: #tag deletion
+            tag = vid.tags.filter(name=request.data.get('tag'))
+            if tag.count() == 0:
+                return RESTResponse(None, status=status.HTTP_304_NOT_MODIFIED)
+            tag = tag.first()
+            vid.tags.remove(tag)
+            return RESTResponse()
+        else: #video deletion
+            try:
+                os.remove(vid.video_file)
+            except:
+                logger.exception(f"Unable to delete file vide file '{vid.video_file}'")
+            vid.thumbnail_file.delete(True)
+            vid.delete()
+            return RESTResponse(status=status.HTTP_204_NO_CONTENT)
+    
+    def patch(self, request, *args, pk=None, **kwargs):
+        data = loads(request.body)
+        instance:Video = get_object_or_404(self.queryset, pk=pk)
+        if len(data.get('title', '').strip()) == 0:
+            return RESTResponse({'error':f'"title" field is empty, blank or not found in request data', 
+                                    'content':data},
+                                status=status.HTTP_400_BAD_REQUEST,
+                                content_type='application/json')
+        instance.title = data['title']
+        instance.save()
+        return RESTResponse(status=status.HTTP_200_OK)
+        
+    def put(self, request, *args, pk=None, **kwargs):
+        if request.data is None or 'tag' not in request.data:
+            return RESTResponse({'message':'Error: No tag found in body'}, status=status.HTTP_400_BAD_REQUEST)
+        vid = get_object_or_404(self.queryset, pk=pk)
+        tag,_ = Tag.objects.get_or_create(name=request.data.get('tag'))
+        vid.tags.add(tag)
+        vid.save()
+        return RESTResponse(status=status.HTTP_200_OK)        
+
+#####################
+###### Util mixin
 
 class GlobalContextMixin:
     def get_context_data(self, **kwargs):
@@ -151,7 +218,6 @@ class VideoTagView(View):
     def post(self, request:HttpRequest, *args, pk=None, **kwargs):
         post = loads(request.body)
         tag,_ = Tag.objects.get_or_create(name=post.get('tag'))
-        # tag = get_object_or_404(Tag.objects.all(), pk=post.get('tag'))
         vid = get_object_or_404(self.queryset, pk=pk)
         vid.tags.add(tag)
         vid.save()

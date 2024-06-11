@@ -124,7 +124,7 @@ const csrftoken = getCookie('csrftoken');</script>
                 type: "DELETE",
                 headers: {'X-CSRFToken': csrftoken},
                 success: function(result) {
-                    window.location.replace("/videos/");
+                    window.location.replace("/video/");
                 },
                 error: function(result) {
                     showToast('Error deleting file. Contact an administrator');
