@@ -31,3 +31,6 @@ venv.bak/
 
 # Frame for config
 single_frame.webp
+
+# NextJS 
+frontend/node_modules
