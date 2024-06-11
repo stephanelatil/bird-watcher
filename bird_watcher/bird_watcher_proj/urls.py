@@ -22,9 +22,9 @@ from birdwatcher.views import VideoListView, LiveStreamView, SingleVideoView, Vi
 urlpatterns = [
     path('admin/', admin.site.urls),
     re_path('config/?', ConfigView.as_view(), name=ConfigView.url_name),
-    re_path('videos/?', VideoListView.as_view(), name=VideoListView.url_name),
-    path('video/<int:pk>/tag', VideoTagView.as_view(), name=VideoTagView.url_name),
-    path('video/<int:pk>', SingleVideoView.as_view(), name='video-detail'),
+    re_path('video/?', VideoListView.as_view(), name=VideoListView.url_name),
+    path('video/(?P<pk>[1-9][0-9]*)/tag', VideoTagView.as_view(), name=VideoTagView.url_name),
+    re_path('video/(?P<pk>[1-9][0-9]*)', SingleVideoView.as_view(), name='video-detail'),
     re_path('livestream/?', LiveStreamView.as_view(), name='video-livestream'),
     path(r'', RedirectView.as_view(url='videos', permanent=True), name='index')
 ]
