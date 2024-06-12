@@ -9,12 +9,12 @@ https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 import os
 from django.apps import apps
 from django.conf import settings
+from constance import config
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bird_watcher_proj.settings')
 apps.populate(settings.INSTALLED_APPS)
 
-from django.conf import settings
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.wsgi import WSGIMiddleware
