@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 
 class Tag(models.Model):
-    name = models.CharField(max_length=32)
+    name = models.CharField(max_length=32, unique=True)
     #videos = related_name
     
     def save(self, *args, **kwargs):
