@@ -3,6 +3,7 @@ django
 django-filter
 django-bootstrap5
 djangorestframework
+adrf
 fastapi #for video streaming
 uvicorn
 

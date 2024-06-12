@@ -3,12 +3,13 @@ from birdwatcher.models import Video, Tag
 from birdwatcher.serializer import VideoSerializer, ConfigSerializer
 from birdwatcher.forms import TagVideoForm, ConstanceSettingsForm
 from birdwatcher.utils import start_or_restart_birdwatcher, kill_birdwatcher, watcher_is_running, FrameConsumer
-from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response as RESTResponse
+from rest_framework.viewsets import ReadOnlyModelViewSet
+from adrf.viewsets import ViewSet
 from django.views.generic import View, ListView, DetailView
 from django.http import HttpRequest
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, aget_object_or_404
 from django.urls import reverse
 from django.conf import settings
 from constance import config
@@ -34,50 +35,57 @@ api_router = APIRouter()
 #####################
 ###### REST API
 
-class RESTVideoView(ReadOnlyModelViewSet):
+class RESTVideoView(ViewSet):
     queryset = Video.objects.all()
     permission_classes = [AllowAny]
+    serializer_class = VideoSerializer
     
-    def get_serializer_class(self, *args, **kwargs):
-        return VideoSerializer
+    async def retrieve(self, request, *args, pk=None, **kwargs):
+        vid = await aget_object_or_404(self.queryset, pk=pk)
+        serializer:VideoSerializer = self.serializer_class(instance=vid, many=False)
+        return RESTResponse(await serializer.adata, status.HTTP_200_OK)
     
-    def delete(self, request, *args, pk=None, **kwargs):
-        vid:Video = get_object_or_404(self.queryset, pk=pk)
+    async def list(self, request, *args, **kwargs):
+        serializer:VideoSerializer = self.serializer_class(instance=[x async for x in Video.objects.aiterator()], many=True)
+        return RESTResponse(await serializer.adata, status.HTTP_200_OK)
+    
+    async def delete(self, request, *args, pk=None, **kwargs):
+        vid = await aget_object_or_404(self.queryset, pk=pk)
         if not request.data is None and 'tag' in request.data: #tag deletion
-            tag = vid.tags.filter(name=request.data.get('tag'))
-            if tag.count() == 0:
+            try:
+                tag = await Tag.objects.aget(name=request.data.get('tag'))
+            except:
                 return RESTResponse(None, status=status.HTTP_304_NOT_MODIFIED)
-            tag = tag.first()
             vid.tags.remove(tag)
-            return RESTResponse()
+            return RESTResponse(status=status.HTTP_204_NO_CONTENT)
         else: #video deletion
             try:
                 os.remove(vid.video_file)
             except:
                 logger.exception(f"Unable to delete file vide file '{vid.video_file}'")
             vid.thumbnail_file.delete(True)
-            vid.delete()
+            await vid.adelete()
             return RESTResponse(status=status.HTTP_204_NO_CONTENT)
     
-    def patch(self, request, *args, pk=None, **kwargs):
-        data = loads(request.body)
-        instance:Video = get_object_or_404(self.queryset, pk=pk)
+    async def patch(self, request, *args, pk=None, **kwargs):
+        data = request.data
+        instance:Video = await aget_object_or_404(self.queryset, pk=pk)
         if len(data.get('title', '').strip()) == 0:
             return RESTResponse({'error':f'"title" field is empty, blank or not found in request data', 
                                     'content':data},
                                 status=status.HTTP_400_BAD_REQUEST,
                                 content_type='application/json')
         instance.title = data['title']
-        instance.save()
+        await instance.asave()
         return RESTResponse(status=status.HTTP_200_OK)
         
-    def put(self, request, *args, pk=None, **kwargs):
+    async def put(self, request, *args, pk=None, **kwargs):
         if request.data is None or 'tag' not in request.data:
             return RESTResponse({'message':'Error: No tag found in body'}, status=status.HTTP_400_BAD_REQUEST)
-        vid = get_object_or_404(self.queryset, pk=pk)
-        tag,_ = Tag.objects.get_or_create(name=request.data.get('tag'))
-        vid.tags.add(tag)
-        vid.save()
+        vid = await aget_object_or_404(self.queryset, pk=pk)
+        tag,_ = await Tag.objects.aget_or_create(name=request.data.get('tag'))
+        await vid.tags.aadd(tag)
+        await vid.asave()
         return RESTResponse(status=status.HTTP_200_OK)     
     
 class RESTConfigViewset(ReadOnlyModelViewSet):

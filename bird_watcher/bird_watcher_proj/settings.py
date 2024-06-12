@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_bootstrap5',
     'constance',
+    'adrf',
     'rest_framework',
     'birdwatcher'
 ]

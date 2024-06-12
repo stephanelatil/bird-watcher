@@ -1,4 +1,6 @@
-from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField, URLField, CharField, DateTimeField, SerializerMethodField
+from adrf.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer as SyncModelSerializer
+from rest_framework.serializers import PrimaryKeyRelatedField, URLField, CharField, DateTimeField, SerializerMethodField
 from birdwatcher.models import Video, Tag
 from constance.models import Constance
 from django.conf import settings
@@ -27,7 +29,7 @@ class VideoSerializer(ModelSerializer):
         model = Video
         fields = ['id', 'title', 'thumbnail_url', 'date_created', 'tags']
         
-class ConfigSerializer(ModelSerializer):
+class ConfigSerializer(SyncModelSerializer):
     defaultValue = SerializerMethodField(method_name='get_default_value')
     helpText = SerializerMethodField(method_name='get_help_text')
     value = SerializerMethodField(method_name='get_value')
