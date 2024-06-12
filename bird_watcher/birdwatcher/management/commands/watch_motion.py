@@ -380,8 +380,8 @@ class Command(BaseCommand):
         setup_logging()
         
         cam_options = {}
-        if config.VID_FORCED_FRAMERATE > 0:
-            cam_options['r'] = str(config.VID_FORCED_FRAMERATE)
+        if settings.VID_FORCED_FRAMERATE > 0:
+            cam_options['r'] = str(settings.VID_FORCED_FRAMERATE)
         
         c = CapAndRecord(cam_options={"input_format":settings.VID_INPUT_FORMAT,
                                     "videosize":config.VID_RESOLUTION, **cam_options},

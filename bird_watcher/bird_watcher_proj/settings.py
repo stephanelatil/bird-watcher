@@ -179,11 +179,10 @@ RECORD_SECONDS_BEFORE_MOVEMENT = env("RECORD_SECONDS_BEFORE_MOVEMENT", default=2
 RECORD_SECONDS_AFTER_MOVEMENT = env("RECORD_SECONDS_AFTER_MOVEMENT", default=2, cast=float)
 
 CONSTANCE_CONFIG = {
-    "VID_OUTPUT_PXL_FORMAT" : (VID_OUTPUT_PXL_FORMAT, "", str),
-    "VID_RESOLUTION" : (VID_RESOLUTION, "", str),
-    "VID_FORCED_FRAMERATE" : (VID_FORCED_FRAMERATE, "", float),
+    "START_MOTION_DETECTOR_ON_SERVER_START" : (False, "Whether the motion detector should be started when the webapp starts", bool),
+    "VID_RESOLUTION" : (VID_RESOLUTION, "The camera video resolution. You can check valid resolutions by running: ffmpeg -f v4l2 -list_formats all -i /dev/video0 2>&1 |grep Raw", str),
 
-    "MOTION_CHECKS_PER_SECOND" : (MOTION_CHECKS_PER_SECOND, "", float),
+    "MOTION_CHECKS_PER_SECOND" : (MOTION_CHECKS_PER_SECOND, "Number of times per second to check for motion in the video stream", float),
     "MOTION_DETECTION_THRESHOLD" : (MOTION_DETECTION_THRESHOLD, "", float),
     "RECORD_SECONDS_BEFORE_MOVEMENT" : (RECORD_SECONDS_BEFORE_MOVEMENT, "", float),
     "RECORD_SECONDS_AFTER_MOVEMENT" : (RECORD_SECONDS_AFTER_MOVEMENT, "", float),
