@@ -178,12 +178,12 @@ RECORD_SECONDS_BEFORE_MOVEMENT = env("RECORD_SECONDS_BEFORE_MOVEMENT", default=2
 RECORD_SECONDS_AFTER_MOVEMENT = env("RECORD_SECONDS_AFTER_MOVEMENT", default=2, cast=float)
 
 CONSTANCE_CONFIG = {
-    "VID_OUTPUT_PXL_FORMAT" : (VID_OUTPUT_PXL_FORMAT, "", str),
+    "START_MOTION_DETECTOR_ON_SERVER_START" : (False, "Whether the motion detector should be started when the webapp starts", bool),
     "VID_RESOLUTION" : (VID_RESOLUTION, "", str),
-    "VID_FORCED_FRAMERATE" : (VID_FORCED_FRAMERATE, "", float),
 
-    "MOTION_CHECKS_PER_SECOND" : (MOTION_CHECKS_PER_SECOND, "", float),
+    "MOTION_SENSITIVITY_THRESHOLD": (40, "How sensitive a pixel luminosity change should be to be considered a motion change (usually a value above 20 is recommended to avoid random noise to be considered motion)", int),
     "MOTION_DETECTION_THRESHOLD" : (MOTION_DETECTION_THRESHOLD, "", float),
+    "MOTION_CHECKS_PER_SECOND" : (MOTION_CHECKS_PER_SECOND, "", float),
     "RECORD_SECONDS_BEFORE_MOVEMENT" : (RECORD_SECONDS_BEFORE_MOVEMENT, "", float),
     "RECORD_SECONDS_AFTER_MOVEMENT" : (RECORD_SECONDS_AFTER_MOVEMENT, "", float),
     

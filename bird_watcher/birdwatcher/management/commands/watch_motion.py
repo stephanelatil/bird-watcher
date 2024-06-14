@@ -170,6 +170,7 @@ class MotionDetector:
         self._shrink_ratio = (60/(check_area[1][1] - check_area[0][1]) + 60/(check_area[1][0] - check_area[0][0]))/2
         #we make sure the image is not upscaled (useless just adds noise and more overhead)
         self._shrink_ratio = min(1, self._shrink_ratio)
+        self._motion_sensitivity = config.MOTION_SENSITIVITY_THRESHOLD
         self._background = np.zeros((0,0)) #no detected background yet
         self._background_fade_rate = background_fade_rate
         self._mov_check_every = mov_check_every
@@ -205,7 +206,7 @@ class MotionDetector:
         
         diff = cv2.absdiff(self._background, frame)
         self.update_background(frame)
-        _,diff = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)
+        _,diff = cv2.threshold(diff, self._motion_sensitivity, 255, cv2.THRESH_BINARY)
         num_pixels_theshold = self._mov_on_frame_amount*diff.shape[0]*diff.shape[1]
         nonZero = cv2.countNonZero(diff)
         if nonZero > num_pixels_theshold/2 and not nonZero > num_pixels_theshold:
