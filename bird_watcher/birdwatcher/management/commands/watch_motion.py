@@ -313,7 +313,7 @@ class CapAndRecord(Interruptable):
         try:
             logger.info("Motion Detection and Capture starting")
             motion = MotionDetector(self._check_area,
-                                    shrink_ratio=1/20,
+                                    shrink_ratio=max(0.001,min(100/max(self._check_area[1][0]-self._check_area[0][0], self._check_area[1][1]-self._check_area[1][0]),1)),
                                     mov_on_frame_amount=self._motion_threshold,
                                     mov_check_every=int(self._frame_movement_check))
             writer = None
