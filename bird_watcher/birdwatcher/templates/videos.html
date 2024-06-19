@@ -24,7 +24,7 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-function dev_video(del_pk) {
+function del_video(del_pk) {
     console.log(del_pk);
     if (confirm("Are you sure you want to delete this video?")){
         $.ajax({
