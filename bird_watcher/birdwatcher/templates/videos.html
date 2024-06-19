@@ -41,7 +41,7 @@ const csrftoken = getCookie('csrftoken');</script>
                             </a>
                         </div>
                         <div class="col order-last flex">
-                            <button id="delete-video-button" class="btn btn-primary-outline" style="padding: 0; margin-top: 12px; margin-bottom: 0px; font-size: 24px; border-color: transparent;" id="#delete-video-button" vid_pk="{{ video.pk }}">🗑</button>
+                            <input type="button" onclick="del_video('{{ video.pk }}')" id="delete-video-button" class="btn btn-primary-outline" style="padding: 0; margin-top: 12px; margin-bottom: 0px; font-size: 24px; border-color: transparent;">🗑</button>
                         </div>
                     </div>
                 </div>
@@ -61,10 +61,7 @@ const csrftoken = getCookie('csrftoken');</script>
     </div>
 
     <script>
-    $(document).ready(() => 
-        {$("#delete-video-button").click(function(e) {
-            e.preventDefault();
-            var del_pk = $(this).attr("vid_pk");
+        function dev_video(del_pk) {
             console.log(del_pk);
             if (confirm("Are you sure you want to delete this video?")){
                 $.ajax({
@@ -79,7 +76,7 @@ const csrftoken = getCookie('csrftoken');</script>
                     }
                 });
             }
-        });
+        }
 
         // Function to display toast message
         function showToast(message) {
@@ -89,7 +86,6 @@ const csrftoken = getCookie('csrftoken');</script>
             var toast = new bootstrap.Toast(toastElement);
             toast.show();
         }
-    });
     </script>
 </body>
 </html>
