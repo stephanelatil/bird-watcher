@@ -22,7 +22,25 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-const csrftoken = getCookie('csrftoken');</script>
+const csrftoken = getCookie('csrftoken');
+
+function dev_video(del_pk) {
+    console.log(del_pk);
+    if (confirm("Are you sure you want to delete this video?")){
+        $.ajax({
+            type: "DELETE",
+            url: "/video/"+del_pk,
+            headers: {'X-CSRFToken': csrftoken},
+            success: function(result) {
+                $("#video-card-"+del_pk).remove();
+            },
+            error: function(result) {
+                showToast('Error deleting file. Contact an administrator');
+            }
+        });
+    }
+}
+</script>
 <body>
 {% include "header.html" %}
     <div class="container">
@@ -61,23 +79,6 @@ const csrftoken = getCookie('csrftoken');</script>
     </div>
 
     <script>
-        function dev_video(del_pk) {
-            console.log(del_pk);
-            if (confirm("Are you sure you want to delete this video?")){
-                $.ajax({
-                    type: "DELETE",
-                    url: "/video/"+del_pk,
-                    headers: {'X-CSRFToken': csrftoken},
-                    success: function(result) {
-                        $("#video-card-"+del_pk).remove();
-                    },
-                    error: function(result) {
-                        showToast('Error deleting file. Contact an administrator');
-                    }
-                });
-            }
-        }
-
         // Function to display toast message
         function showToast(message) {
             var toastElement = document.getElementById('errorToast');
