@@ -114,6 +114,7 @@ class SingleVideoView(GlobalContextMixin, FormMixin, DetailView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get the context
         context = super().get_context_data(**kwargs)
+        context['form'] = self.form_class(None)
         context['video'] = context.pop('object')
         context['tag_list'] = list(context['video'].tags.values_list('name',flat=True))
         context['tag_url'] = reverse('video-tags', args=(context['video'].pk,))
