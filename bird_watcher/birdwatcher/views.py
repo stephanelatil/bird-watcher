@@ -31,7 +31,7 @@ class GlobalContextMixin:
         try:
             context = super().get_context_data(**kwargs)
         except:
-            context = {}
+            context = kwargs
         context['all_tags'] = list(t.name for t in Tag.objects.all())
         if 'video' in context:
             context['url_edit_video_tags'] = reverse(VideoTagView.url_name, args=(context['video'].pk,))
