@@ -3,6 +3,7 @@ import logging.config
 import logging.handlers
 import sys, os, select
 import cv2
+import zoneinfo, datetime
 from socket import socket, AF_UNIX, SOCK_STREAM, SO_REUSEADDR, SOL_SOCKET
 import numpy as np
 from io import BytesIO
@@ -61,6 +62,12 @@ class ColoredSimpleFormatter(logging.Formatter):
                                  style=self.style,
                                  validate=self.validate
                                  ).format(record)
+
+def get_datetime_local():
+    utc_time = datetime.now(zoneinfo.ZoneInfo("UTC"))
+    localtz = settings.LOCAL_TIMEZONE
+    offset_from_utc = localtz.utcoffset(utc_time)
+    return utc_time+offset_from_utc
 
 def setup_logging():
     root_logger = logging.getLogger()

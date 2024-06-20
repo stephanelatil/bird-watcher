@@ -163,7 +163,7 @@ try:
     with open('/etc/timezone', 'r') as f:
         LOCAL_TIMEZONE = ZoneInfo(f.read())
 except:
-    LOCAL_TIMEZONE = ZoneInfo('UTC')
+    LOCAL_TIMEZONE = ZoneInfo('localtime')
 
 VID_OUTPUT_PXL_FORMAT = env("VID_OUTPUT_PXL_FORMAT", default="yuvj444p", cast=str)
 VID_CAMERA_DEVICE = env("VID_CAMERA_DEVICE", cast=str)

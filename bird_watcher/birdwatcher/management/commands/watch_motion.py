@@ -3,16 +3,15 @@ import numpy as np
 from threading import Thread
 from multiprocessing import Queue
 from pathlib import Path
-import av, logging, atexit, math
+import av, logging, math, zoneinfo
 from datetime import datetime
 from collections import deque
 from django.conf import settings
 from constance import config
 from django.core.management import BaseCommand
 from birdwatcher.models import Video
-from birdwatcher.utils import setup_logging, FrameConsumer
-from os import path
-from os import chmod
+from birdwatcher.utils import setup_logging, FrameConsumer, get_datetime_local
+from os import path, chmod
 from time import perf_counter
 import signal
 
@@ -63,7 +62,7 @@ class Interruptable:
             StaticThreadInterrupt.interrupt_all()
 
 class VideoWriter(Interruptable):
-    def __init__(self, filename, initial=None, codec="libx264", fps=30, height=1080, width=1920) -> None:
+    def __init__(self, filename, creation_time=None, initial=None, codec="libx264", fps=30, height=1080, width=1920) -> None:
         #ensure assets dir exists
         Path(settings.MEDIA_ROOT).joinpath(settings.VIDEOS_DIRECTORY).mkdir(0o755, True, True)
         Path(settings.MEDIA_ROOT).joinpath(settings.THUMBNAIL_DIRECTORY).mkdir(0o755, True, True)
@@ -74,19 +73,18 @@ class VideoWriter(Interruptable):
         self._codec = codec
         self._fps = fps
         self._resolution = (height, width)
-        self._write_thread = Thread(target=self._start_write, kwargs={"filename":filename})
+        self._write_thread = Thread(target=self._start_write, kwargs={"filename":filename, "creation_time":creation_time})
         super().__init__(self._write_thread)
         logger.debug("Starting Video Writer Thread")
         self._write_thread.start()
         
-    def _start_write(self, filename):
+    def _start_write(self, filename, creation_time=creation_time):
         #Create thumbnail
         if len(self._initial) > 0:
             #if there are images in the ring buffer use the most recent as thumbnail
             thumbnail_frame = self._initial[-1]
         else:
             #Otherwise take the first next frame
-            # TODO can stay stuck here if interrupted
             thumbnail_frame = self._frame_queue.get(True)
             self._frame_queue.put_nowait(thumbnail_frame)
         _, thumbnail = cv2.imencode(".webp", cv2.cvtColor(thumbnail_frame, cv2.COLOR_BGR2RGB),
@@ -107,7 +105,8 @@ class VideoWriter(Interruptable):
         vid = Video.objects.create(video_file=file_path,
                                    num_frames=len(self._initial),
                                    framerate=self._fps)
-        vid_time = datetime.now(settings.LOCAL_TIMEZONE)
+        
+        vid_time = creation_time or get_datetime_local()
         vid.title = vid_time.strftime("%A %-d %b %Y, %H:%M:%S")
         vid.thumbnail_file.save(str(vid.pk).rjust(7,'0')+'.webp', thumbnail)
         vid.save()
@@ -342,7 +341,9 @@ class CapAndRecord(Interruptable):
                 #motion detected within frame limit
                 if frames_without_motion > 0:
                     if writer is None:
-                        writer = VideoWriter(datetime.now().strftime("%Y-%m-%d_%H-%M-%S.mp4"),
+                        localtime = get_datetime_local()
+                        writer = VideoWriter(localtime.strftime("%Y-%m-%d_%H-%M-%S.mp4"),
+                                             creation_time=localtime,
                                             initial=list(self._frame_ring_buffer),
                                             fps=self._cam.frame_rate,
                                             height=self._cam.resolution[0],
