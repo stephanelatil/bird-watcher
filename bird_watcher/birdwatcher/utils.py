@@ -3,7 +3,8 @@ import logging.config
 import logging.handlers
 import sys, os, select
 import cv2
-import zoneinfo, datetime
+import zoneinfo
+from datetime import datetime
 from socket import socket, AF_UNIX, SOCK_STREAM, SO_REUSEADDR, SOL_SOCKET
 import numpy as np
 from io import BytesIO
