@@ -4,7 +4,7 @@ A self-hosted web app to be placed on a micro computer (96boards or raspberry-pi
 
 ## Need an issue fixed faster?
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/gbraad)
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/stephanelatil)
 
 ## Quick-Start
 
