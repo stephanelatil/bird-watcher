@@ -14,6 +14,7 @@ from birdwatcher.utils import setup_logging, FrameConsumer, get_datetime_local
 from os import path, chmod
 from time import perf_counter
 import signal
+from ultralytics import YOLO
 
 logger = logging.getLogger(settings.PROJECT_NAME)
 
@@ -78,7 +79,7 @@ class VideoWriter(Interruptable):
         logger.debug("Starting Video Writer Thread")
         self._write_thread.start()
         
-    def _start_write(self, filename, creation_time=creation_time):
+    def _start_write(self, filename, creation_time):
         #Create thumbnail
         if len(self._initial) > 0:
             #if there are images in the ring buffer use the most recent as thumbnail
@@ -97,7 +98,7 @@ class VideoWriter(Interruptable):
         file_path = str(path.join(settings.MEDIA_ROOT, settings.VIDEOS_DIRECTORY, filename))
         stream_options = {'movflags':'+faststart', "crf":"18"}
         container = av.open(file_path, mode="w")
-        stream = container.add_stream(self._codec, rate=self._fps, options=stream_options)
+        stream:av.VideoStream = container.add_stream(self._codec, rate=self._fps, options=stream_options)
         stream.height,stream.width = self._resolution
         # stream.pix_fmt = settings.VID_OUTPUT_PXL_FORMAT
         logger.debug(f"Creating video file \"{file_path}\"")
@@ -114,9 +115,7 @@ class VideoWriter(Interruptable):
         
         #write initial buffer
         for frame in self._initial:
-            frame = av.VideoFrame.from_ndarray(frame, format="rgb24")            
-            # for packet in stream.encode(frame):
-            #     container.mux(packet)
+            frame = av.VideoFrame.from_ndarray(frame, format="rgb24")
             container.mux(stream.encode(frame))
         logger.debug(f"Wrote first {len(self._initial)} frames")
         del self._initial #clear mem
@@ -128,9 +127,8 @@ class VideoWriter(Interruptable):
             except:
                 f = None
                 continue
-            frame = av.VideoFrame.from_ndarray(f, format="rgb24")            
-            for packet in stream.encode(frame):
-                container.mux(packet)
+            frame = av.VideoFrame.from_ndarray(f, format="rgb24")
+            container.mux(stream.encode(frame))
             vid.num_frames += 1
 
 
@@ -169,6 +167,10 @@ class MotionDetector:
         self._shrink_ratio = (60/(check_area[1][1] - check_area[0][1]) + 60/(check_area[1][0] - check_area[0][0]))/2
         #we make sure the image is not upscaled (useless just adds noise and more overhead)
         self._shrink_ratio = min(1, self._shrink_ratio)
+        #TODO select model in settings
+        self._yolo = YOLO(model=path.join(settings.MODEL_DIR, "yolo11small-cls.pt"),
+                          task="classify", verbose=settings.DEBUG)
+        self._yolo_resize = (224,224)
         self._motion_sensitivity = config.MOTION_SENSITIVITY_THRESHOLD
         self._background = np.zeros((0,0)) #no detected background yet
         self._background_fade_rate = background_fade_rate
@@ -181,7 +183,8 @@ class MotionDetector:
         #select only the part of the frame to consider
         frame = frame[self._check_area[0][0]:self._check_area[1][0],
                       self._check_area[0][1]:self._check_area[1][1],:]
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        return cv2.resize(frame, self._yolo_resize) #resize image to pass to YOLO for detection
         #pass a (0,0) destination size so that it will be auto determined by the shrink ratio
         if self._shrink_ratio == 1:
             return frame #no resize needed
@@ -199,27 +202,32 @@ class MotionDetector:
         self._frame_check_num = 0
         
         frame = self._gray_and_resize_frame(frame)
-        if self._background.shape[0] == 0: #no background yet
-            self._background = frame
-            return False
+        # if self._background.shape[0] == 0: #no background yet
+        #     self._background = frame
+        #     return False
         
-        diff = cv2.absdiff(self._background, frame)
-        self.update_background(frame)
-        _,diff = cv2.threshold(diff, self._motion_sensitivity, 255, cv2.THRESH_BINARY)
-        num_pixels_theshold = self._mov_on_frame_amount*diff.shape[0]*diff.shape[1]
-        nonZero = cv2.countNonZero(diff)
-        if nonZero > num_pixels_theshold/2 and not nonZero > num_pixels_theshold:
-            logging.debug(f"Motion check 1/2-MVNT {nonZero}/{num_pixels_theshold}")
-        if nonZero > num_pixels_theshold:
-            logging.debug(f"Motion check MOVEMENT {nonZero}/{num_pixels_theshold}")
-            return True
-        logging.debug(f"Motion check nothing: {nonZero}/{num_pixels_theshold}")
-        return False
+        # diff = cv2.absdiff(self._background, frame)
+        # self.update_background(frame)
+        # _,diff = cv2.threshold(diff, self._motion_sensitivity, 255, cv2.THRESH_BINARY)
+        # num_pixels_theshold = self._mov_on_frame_amount*diff.shape[0]*diff.shape[1]
+        # nonZero = cv2.countNonZero(diff)
+        # if nonZero > num_pixels_theshold/2 and not nonZero > num_pixels_theshold:
+        #     logging.debug(f"Motion check 1/2-MVNT {nonZero}/{num_pixels_theshold}")
+        # if nonZero > num_pixels_theshold:
+        #     logging.debug(f"Motion check MOVEMENT {nonZero}/{num_pixels_theshold}")
+        #     return True
+        # logging.debug(f"Motion check nothing: {nonZero}/{num_pixels_theshold}")
+        # return False
+        
+        result = self._yolo.predict(frame, conf=0.7, imgsz=frame.shape[0], max_det=5,
+                                    #Need to edit classes here to consider all animals
+                                    classes=[14,15,16])[0] #get the result
+        return False if result.probs is None else result.probs.top1conf.item() > 0.75
 
 class CamInterface:
     def __init__(self, options=None):
         if options is None:
-            options = {}
+            options = {}    
         # logger.debug(f"Starting CamInterface on {settings.VID_CAMERA_DEVICE} with options: {options}")
         logger.debug("Starting CamInterface with CV2 v4l2")
         self._inner_gen = None
@@ -334,7 +342,8 @@ class CapAndRecord(Interruptable):
                 if frame is None:
                     raise EOFError('Camera interface is closed')
                 self._frame_ring_buffer.append(frame)
-                #on every nth frame check for movement
+                #check for movement
+                #check only happens every nth frame (set in settings). Returns false on other frames
                 if motion.has_movement(frame):
                     frames_without_motion = self._record_n_frames_without_movement
                         

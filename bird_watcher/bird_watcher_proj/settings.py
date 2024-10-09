@@ -29,6 +29,7 @@ env = Config(RepositoryEnv(str(env_path_dir.joinpath('.env').absolute())))
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_ROOT = "assets"
+MODEL_DIR = "models"
 VIDEOS_DIRECTORY = "videos"
 THUMBNAIL_DIRECTORY = "thumbnails"
 
