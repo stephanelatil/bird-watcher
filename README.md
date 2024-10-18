@@ -20,6 +20,16 @@ On your device make sure to install `ffmpeg`  that should be on the PATH and som
 
 simply run `sudo apt-get install ffmpeg libavdevice-dev libavformat-dev v4l-utils python3-dev libsystemd-dev`
 
+**If using a Google Coral Edge TPU:** also add the following library then restart the Rpi or unplug and plug-in the TPU
+
+```bash
+echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+sudo apt update 
+sudo apt install libedgetpu1-std 
+```
+
 #### Installing pip requirements
 
 Install the requirements in the requirements.txt file. (It is recommended to use a venv!)
