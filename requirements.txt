@@ -22,3 +22,4 @@ av --no-binary=av
 
 #YOLO image detection
 ultralytics
+tflite-runtime # for coral TPU
